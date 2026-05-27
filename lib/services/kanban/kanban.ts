@@ -26,7 +26,7 @@ export async function getJobCandidates(jobId: string): Promise<JobCandidate[]> {
                 telefono,
                 localidad,
                 provincia,
-                area_id,
+                area,
                 experiencie_id,
                 availability_id,
                 estudios,
