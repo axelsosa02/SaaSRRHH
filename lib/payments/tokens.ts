@@ -1,0 +1,102 @@
+import { createClientServer } from '@/lib/supabase/server'
+
+const TOKEN_EXPIRY_HOURS = 24
+
+/**
+ * Crea un registro de pago pendiente en la tabla `payments`.
+ * Se llama ANTES de redirigir al usuario a Mercado Pago.
+ * Retorna el token UUID que se usará como parámetro de retorno.
+ */
+export async function createPendingPayment({
+    orgId,
+    candidateEmail,
+}: {
+    orgId: string
+    candidateEmail?: string
+}): Promise<string> {
+    const supabase = await createClientServer()
+
+    const token = crypto.randomUUID()
+
+    const { error } = await supabase.from('payments').insert({
+        org_id: orgId,
+        candidate_email: candidateEmail ?? '',
+        monto: 7000,
+        estado: 'pendiente',
+        token,
+        token_usado: false,
+    })
+
+    if (error) throw error
+
+    return token
+}
+
+/**
+ * Actualiza el registro de pago con el mp_payment_id y el estado aprobado.
+ * Se llama desde la página de success o el webhook de MP.
+ */
+export async function approvePaymentToken({
+    token,
+    mpPaymentId,
+}: {
+    token: string
+    mpPaymentId: string
+}) {
+    const supabase = await createClientServer()
+
+    const { error } = await supabase
+        .from('payments')
+        .update({
+            mp_payment_id: mpPaymentId,
+            estado: 'aprobado',
+        })
+        .eq('token', token)
+        .eq('estado', 'pendiente') // solo actualiza si aún está pendiente
+
+    if (error) throw error
+}
+
+/**
+ * Verifica si un token es válido para acceder al formulario:
+ * - existe en la tabla
+ * - está en estado 'aprobado'
+ * - no fue usado
+ * - no tiene más de TOKEN_EXPIRY_HOURS horas de antigüedad
+ */
+export async function isTokenValid(token: string): Promise<boolean> {
+    if (!token) return false
+
+    const supabase = await createClientServer()
+
+    const expiryDate = new Date()
+    expiryDate.setHours(expiryDate.getHours() - TOKEN_EXPIRY_HOURS)
+
+    const { data, error } = await supabase
+        .from('payments')
+        .select('id, estado, token_usado, created_at')
+        .eq('token', token)
+        .eq('estado', 'aprobado')
+        .eq('token_usado', false)
+        .gte('created_at', expiryDate.toISOString())
+        .maybeSingle()
+
+    if (error || !data) return false
+
+    return true
+}
+
+/**
+ * Marca un token como usado una vez que el candidato envió su postulación.
+ * Evita que el mismo pago se use para postularse dos veces.
+ */
+export async function markTokenAsUsed(token: string) {
+    const supabase = await createClientServer()
+
+    const { error } = await supabase
+        .from('payments')
+        .update({ token_usado: true })
+        .eq('token', token)
+
+    if (error) throw error
+}

@@ -1,0 +1,155 @@
+"use client"
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { useState } from "react";
+import { LoaderCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { AuthFormProps } from "./AuthForm";
+import { login } from "@/actions/auth/auth";
+
+
+const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
+
+    const [isLoading, setisLoading] = useState<boolean>(false)
+
+    // ============ Form ============
+    const formSchema = z.object({
+        email: z.email('Por favor ingresa un correo válido. Ejemplo: user@mail.com').min(1, {
+            message: 'Este campo es requerido'
+        }),
+        password: z.string().min(6, {
+            message: 'La contraseña debe tener al menos 6 caracteres'
+        })
+    })
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            email: '',
+            password: ''
+        }
+    })
+
+    const { handleSubmit, formState, control } = form;
+    const { errors } = formState;
+
+    // ============ Sign In ===========
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        setisLoading(true);
+
+        try {
+            const res = await login(data)
+
+            if (!res.success) {
+                toast.error(res.message, { duration: 2500 });
+                return
+            } else {
+
+                toast.success(`${res.message}`, { duration: 2500 });
+                window.location.reload();
+            }
+
+
+
+
+        } catch (error: any) {
+            toast.error('Credenciales incorrectas', { duration: 2500 });
+        } finally {
+            setisLoading(false);
+        }
+    }
+
+    return (
+        <div>
+            <div className="w-full backdrop-blur-xl py-2 rounded-4xl">
+                <div className="text-center">
+                    <h1 className="lg:text-5xl md:text-4xl text-3xl font-semibold text-center my-4">Iniciar Sesión</h1>
+                    <p className="text-sm text-muted-foreground mb-8">
+                        Talento RH
+                    </p>
+                </div>
+
+                <Form {...form}>
+                    <form onSubmit={handleSubmit(onSubmit)} className="mx-4">
+                        <div className="grid gap-2">
+                            {/* ========== Email ========= */}
+                            <FormField
+                                control={control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem className="mb-3">
+                                        <FormLabel>Correo</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                id="email"
+                                                placeholder="name@example.com"
+                                                type="email"
+                                                autoComplete="email"
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* ========== Password ========= */}
+                            <FormField
+                                control={control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem className="mb-3">
+                                        <FormLabel>Contraseña</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                id="password"
+                                                placeholder="*****"
+                                                type="password"
+                                                autoComplete="current-password"
+                                                disabled={isLoading}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div
+                                onClick={() => setTypeSelected('recover-password')}
+                                className="underline text-center text-white underline-offset-4 hover:text-primary mb-6 text-sm cursor-pointer"
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </div>
+
+                            {/* ========== Submit ========= */}
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading && (
+                                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                                )}
+                                Ingresar
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </div>
+        </div>
+    );
+}
+
+export default SignInForm;
