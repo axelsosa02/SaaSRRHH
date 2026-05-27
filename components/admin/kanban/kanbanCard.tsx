@@ -87,16 +87,16 @@ export function KanbanCard({ jobCandidate, jobId, isDragging }: KanbanCardProps)
                         {candidate.nombre} {candidate.apellido}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                        {candidate.localidad || candidate.area_id || candidate.email}
+                        {candidate.localidad || candidate.area || candidate.email}
                     </p>
                 </div>
             </div>
 
             {/* Footer */}
             <div className="flex items-center justify-between">
-                {candidate.area_id && (
+                {candidate.area && (
                     <span className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full truncate max-w-[120px]">
-                        {candidate.area_id}
+                        {candidate.area}
                     </span>
                 )}
                 <span className="text-[11px] text-muted-foreground ml-auto">
