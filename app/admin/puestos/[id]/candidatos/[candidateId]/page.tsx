@@ -148,9 +148,9 @@ export default function CandidateProfilePage() {
                         {candidate.telefono && (
                             <p className="text-xs text-muted-foreground">{candidate.telefono}</p>
                         )}
-                        {candidate.area_id && (
+                        {candidate.area && (
                             <span className="inline-block mt-2 text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                                {candidate.area_id}
+                                {candidate.area}
                             </span>
                         )}
                     </div>
