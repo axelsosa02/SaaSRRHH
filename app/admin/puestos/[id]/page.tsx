@@ -166,7 +166,7 @@ export default function KanbanPage() {
                         <p className="text-xs text-muted-foreground">Puestos</p>
                         <h1 className="text-lg font-semibold">{job?.titulo || 'Cargando...'}</h1>
                         <p className="text-xs text-muted-foreground">
-                            {job?.modalidad_id} · {job?.localidad} · {candidates.length} candidatos
+                            {job?.modalidad} · {job?.localidad} · {candidates.length} candidatos
                         </p>
                     </div>
                 </div>

@@ -46,7 +46,6 @@ const formSchema = z.object({
 interface ApplicationFormProps {
     orgId: string
     orgNombre?: string
-    user_id: string
     jobs: Job[]
     selectedJobId?: string
     colorBrand: string
@@ -58,7 +57,6 @@ interface ApplicationFormProps {
 export function ApplicationForm({
     orgId,
     orgNombre,
-    user_id,
     jobs,
     selectedJobId,
     colorBrand,
@@ -151,7 +149,6 @@ export function ApplicationForm({
 
             const candidate = await createCandidate({
                 org_id: orgId,
-                user_id: user_id,
                 nombre: values.nombre,
                 apellido: values.apellido,
                 email: values.email,
@@ -171,7 +168,6 @@ export function ApplicationForm({
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     candidateId: candidate.id,
-                    user_id,
                     orgId,
                     nombre: values.nombre,
                     email: values.email,

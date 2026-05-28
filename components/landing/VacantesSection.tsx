@@ -47,7 +47,7 @@ export function VacantesSection({ jobs, slug, colorBrand }: VacantesSectionProps
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Clock className="size-4 text-[#c1a280]" />
-                                        {job.modalidad_id}
+                                        {job.modalidad}
                                     </div>
                                 </div>
                             </div>
