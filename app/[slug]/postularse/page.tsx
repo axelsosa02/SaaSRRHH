@@ -62,6 +62,7 @@ export default async function PostularsePage({
                 <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
                     <ApplicationForm
                         orgId={org.id}
+                        user_id={org.user_id}
                         orgNombre={org.nombre}
                         jobs={jobs}
                         selectedJobId={jobId}
