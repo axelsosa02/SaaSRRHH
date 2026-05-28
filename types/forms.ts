@@ -8,8 +8,8 @@ import { Area, Availability, Experience, Job } from "./database"
 export type JobInput = {
     titulo: string
     descripcion?: string
-    area_id: string
-    modalidad_id: string
+    area: string
+    modalidad: string
     localidad: string
     visibility?: boolean
 }
@@ -18,7 +18,7 @@ export type CandidatesFormValues = {
     nombre: string
     apellido: string
     email: string
-    area_id: string
+    area: string
     experiencia_id: string
     disponibilidad_id: string
     localidad: string

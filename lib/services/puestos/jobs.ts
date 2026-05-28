@@ -22,8 +22,8 @@ export async function createJob(data: JobInput) {
         org_id: profile?.org_id,
         titulo: data.titulo,
         descripcion: data.descripcion,
-        area: data.area_id,
-        modalidad: data.modalidad_id,
+        area: data.area,
+        modalidad: data.modalidad,
         localidad: data.localidad,
         visibility: data.visibility ?? true,
     })
@@ -48,8 +48,8 @@ export async function updateJob(id: string, data: JobInput) {
         org_id: profile?.org_id,
         titulo: data.titulo,
         descripcion: data.descripcion,
-        area: data.area_id,
-        modalidad: data.modalidad_id,
+        area: data.area,
+        modalidad: data.modalidad,
         localidad: data.localidad,
         visibility: data.visibility,
     }).eq('id', id)

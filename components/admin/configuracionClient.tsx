@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Settings, Loader2, ImageIcon } from 'lucide-react'
+import { Settings, Loader2, ImageIcon, CreditCard } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import { upsertSection } from '@/lib/services/configuracion landing/landingSections'
-import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
+import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, updateOrgPago, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
 // En tus imports
 import type {
     SectionMap,
@@ -139,6 +139,10 @@ export function ConfiguracionClient({ org, sections }: Props) {
     // Estado para el logo (permite actualización inmediata sin recargar)
     const [logoUrl, setLogoUrl] = useState<string | null>(org.logo_url)
     const [uploadingLogo, setUploadingLogo] = useState(false)
+
+    // Estado para cobro por postulación
+    const [cobroPostulacion, setCobroPostulacion] = useState<boolean>(org.cobro_postulacion ?? true)
+    const [savingCobro, setSavingCobro] = useState(false)
 
     // Desestructuración de las secciones de la landing para facilitar el acceso
     const hero = sections.hero as HeroContent | undefined
@@ -382,6 +386,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
 
             {/* ── TAB GENERAL ──────────────────────────────────────────────── */}
             {activeTab === 'general' && (
+                <>
                 <Form {...generalForm}>
                     <form onSubmit={generalForm.handleSubmit(onSaveGeneral)} className="flex flex-col gap-4">
                         <SectionCard title="Datos de la organización" desc="Información general usada en toda la plataforma.">
@@ -454,6 +459,65 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         <FormActions form={generalForm} onReset={() => generalForm.reset()} />
                     </form>
                 </Form>
+
+                {/* ── Card de cobro (fuera del form para guardado independiente) ── */}
+                <SectionCard
+                    title="Cobro por postulación"
+                    desc="Activá esta opción si querés cobrar un arancel a los candidatos antes de acceder al formulario de postulación (via Mercado Pago)."
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+                                cobroPostulacion ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                            }`}>
+                                <CreditCard className="h-4 w-4" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium">
+                                    {cobroPostulacion ? 'Pago requerido' : 'Acceso gratuito'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {cobroPostulacion
+                                        ? 'Los candidatos deben abonar $7.000 ARS para postularse.'
+                                        : 'Los candidatos acceden al formulario directamente sin pagar.'}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            disabled={savingCobro}
+                            onClick={async () => {
+                                const nuevoValor = !cobroPostulacion
+                                setSavingCobro(true)
+                                try {
+                                    await updateOrgPago(nuevoValor)
+                                    setCobroPostulacion(nuevoValor)
+                                    toast.success(nuevoValor ? 'Pago habilitado' : 'Acceso gratuito habilitado')
+                                } catch {
+                                    toast.error('Error al guardar')
+                                } finally {
+                                    setSavingCobro(false)
+                                }
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 ${
+                                cobroPostulacion ? 'bg-primary' : 'bg-muted-foreground/30'
+                            }`}
+                            role="switch"
+                            aria-checked={cobroPostulacion}
+                        >
+                            {savingCobro ? (
+                                <Loader2 className="absolute left-1/2 -translate-x-1/2 h-3 w-3 animate-spin text-white" />
+                            ) : (
+                                <span
+                                    className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                                        cobroPostulacion ? 'translate-x-6' : 'translate-x-1'
+                                    }`}
+                                />
+                            )}
+                        </button>
+                    </div>
+                </SectionCard>
+                </>
             )}
 
             {/* ── TAB HERO ─────────────────────────────────────────────────── */}

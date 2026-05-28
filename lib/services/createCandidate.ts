@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/client'
 
 export type CandidateInput = {
     org_id: string
+    user_id: string
     nombre: string
     apellido: string
     email: string
@@ -23,6 +24,7 @@ export async function createCandidate(input: CandidateInput, jobId?: string) {
         .from('candidates')
         .insert({
             org_id: input.org_id,
+            user_id: input.user_id,
             nombre: input.nombre,
             apellido: input.apellido,
             email: input.email,

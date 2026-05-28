@@ -14,7 +14,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-
+import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 import * as z from "zod";
 import { useForm } from "react-hook-form";
@@ -28,8 +28,8 @@ import { Area } from '@/types/database';
 const jobSchema = z.object({
     titulo: z.string().min(1, "El título es requerido"),
     descripcion: z.string().optional(),
-    area_id: z.string().min(1, "Seleccioná un área"),
-    modalidad_id: z.string().min(1, "Seleccioná una modalidad"),
+    area: z.string().min(1, "Seleccioná un área"),
+    modalidad: z.string().min(1, "Seleccioná una modalidad"),
     localidad: z.string().min(1, "La localidad es requerida"),
 })
 
@@ -54,8 +54,8 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
         defaultValues: {
             titulo: '',
             descripcion: '',
-            area_id: '',
-            modalidad_id: '',
+            area: '',
+            modalidad: '',
             localidad: '',
         },
     });
@@ -65,16 +65,16 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
             form.reset({
                 titulo: job.titulo,
                 descripcion: job.descripcion || '',
-                area_id: job.area_id,
-                modalidad_id: job.modalidad_id,
+                area: job.area,
+                modalidad: job.modalidad,
                 localidad: job.localidad,
             });
         } else {
             form.reset({
                 titulo: '',
                 descripcion: '',
-                area_id: '',
-                modalidad_id: '',
+                area: '',
+                modalidad: '',
                 localidad: '',
             });
         }
@@ -86,14 +86,17 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
         try {
             if (job?.id) {
                 await updateJob(job.id, data)
+                toast.success('Puesto actualizado correctamente')
             } else {
                 await createJob(data)
+                toast.success('Puesto creado correctamente')
             }
 
             onSuccess()
             onClose()
         } catch (error) {
             console.error(error)
+            toast.error('Error al guardar el puesto')
         } finally {
             setLoading(false)
         }
@@ -139,7 +142,7 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
-                                name="area_id"
+                                name="area"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Área de Trabajo</FormLabel>
@@ -164,7 +167,7 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
 
                             <FormField
                                 control={form.control}
-                                name="modalidad_id"
+                                name="modalidad"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Modalidad</FormLabel>
@@ -209,6 +212,7 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
                                 <Button type="submit" disabled={loading}>
                                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {job ? 'Actualizar' : 'Crear'}
+                                    
                                 </Button>
                             </div>
                         </DialogFooter>

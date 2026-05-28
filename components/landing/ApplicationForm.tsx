@@ -45,6 +45,8 @@ const formSchema = z.object({
 
 interface ApplicationFormProps {
     orgId: string
+    orgNombre?: string
+    user_id: string
     jobs: Job[]
     selectedJobId?: string
     colorBrand: string
@@ -55,6 +57,8 @@ interface ApplicationFormProps {
 
 export function ApplicationForm({
     orgId,
+    orgNombre,
+    user_id,
     jobs,
     selectedJobId,
     colorBrand,
@@ -143,9 +147,11 @@ export function ApplicationForm({
             }
 
             const jobId = values.jobId === 'general' ? undefined : values.jobId;
+            const jobTitulo = jobId ? jobs.find(j => j.id === jobId)?.titulo : undefined
 
-            await createCandidate({
+            const candidate = await createCandidate({
                 org_id: orgId,
+                user_id: user_id,
                 nombre: values.nombre,
                 apellido: values.apellido,
                 email: values.email,
@@ -158,6 +164,21 @@ export function ApplicationForm({
                 localidad: values.localidad,
                 provincia: values.provincia,
             }, jobId)
+
+            // Enviar email de bienvenida al postulante (sin bloquear el flujo si falla)
+            fetch('/api/emails/welcome', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    candidateId: candidate.id,
+                    user_id,
+                    orgId,
+                    nombre: values.nombre,
+                    email: values.email,
+                    orgNombre,
+                    jobTitulo,
+                }),
+            }).catch(err => console.error('Error enviando email de bienvenida:', err))
 
             // Marcamos el token de pago como usado para evitar reuso
             await fetch('/api/mercadopago/use-token', {

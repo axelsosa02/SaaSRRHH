@@ -33,6 +33,29 @@ export async function createPendingPayment({
 }
 
 /**
+ * Crea un token de acceso gratuito (ya aprobado) para organizaciones
+ * que no requieren pago. Permite reutilizar isTokenValid() sin cambios.
+ */
+export async function createFreeToken(orgId: string): Promise<string> {
+    const supabase = await createClientServer()
+
+    const token = crypto.randomUUID()
+
+    const { error } = await supabase.from('payments').insert({
+        org_id: orgId,
+        candidate_email: '',
+        monto: 0,
+        estado: 'aprobado',
+        token,
+        token_usado: false,
+    })
+
+    if (error) throw error
+
+    return token
+}
+
+/**
  * Actualiza el registro de pago con el mp_payment_id y el estado aprobado.
  * Se llama desde la página de success o el webhook de MP.
  */

@@ -54,10 +54,10 @@ export function JobsTable({ data, onEdit, onRefresh }: JobProps) {
                         data.map((job) => (
                             <tr key={job.id} className="transition-colors hover:bg-muted/30">
                                 <td className="p-4 font-medium">{job.titulo}</td>
-                                <td className="p-4 text-muted-foreground">{job.area_id}</td>
+                                <td className="p-4 text-muted-foreground">{job.area}</td>
                                 <td className="p-4">
                                     <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[13px] font-medium text-primary">
-                                        {job.modalidad_id}
+                                        {job.modalidad}
                                     </span>
                                 </td>
                                 <td className="p-4 text-muted-foreground">{job.localidad}</td>

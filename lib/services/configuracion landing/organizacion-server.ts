@@ -29,7 +29,8 @@ export async function getOrgConfig(): Promise<OrgConfig | null> {
             mail_bienvenida_asunto,
             mail_bienvenida,
             mail_rechazo_asunto,
-            mail_rechazo
+            mail_rechazo,
+            cobro_postulacion
         `)
         .eq('id', profile.org_id)
         .single()

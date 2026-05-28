@@ -48,8 +48,8 @@ export interface Job {
     id: string
     titulo: string
     descripcion?: string
-    area_id: string
-    modalidad_id: string
+    area: string
+    modalidad: string
     localidad: string
     created_at?: string
     visibility: boolean

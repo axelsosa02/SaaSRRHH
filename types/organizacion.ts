@@ -11,4 +11,5 @@ export interface OrgConfig {
     mail_bienvenida: string | null
     mail_rechazo_asunto: string | null
     mail_rechazo: string | null
+    cobro_postulacion: boolean
 }

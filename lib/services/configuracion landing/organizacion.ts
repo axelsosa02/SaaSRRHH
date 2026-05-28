@@ -60,6 +60,25 @@ export async function updateOrgEmails(data: {
     if (error) throw error
 }
 
+export async function updateOrgPago(cobro_postulacion: boolean) {
+    const supabase = createBrowserClient()
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) throw new Error('No autenticado')
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', userData.user.id)
+        .single()
+
+    const { error } = await supabase
+        .from('organizations')
+        .update({ cobro_postulacion })
+        .eq('id', profile?.org_id)
+
+    if (error) throw error
+}
+
 export async function updateOrgLogo(file: File): Promise<string> {
     const supabase = createBrowserClient()
     const { data: userData } = await supabase.auth.getUser()
