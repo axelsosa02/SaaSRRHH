@@ -2,7 +2,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 const MP_APP_ID = process.env.MP_APP_ID!
 const MP_APP_SECRET = process.env.MP_APP_SECRET!
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
+// Removemos la barra final para evitar URLs con doble barra (//)
+const BASE_URL = (process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 const MP_OAUTH_BASE = 'https://auth.mercadopago.com/authorization'
 const MP_TOKEN_URL = 'https://api.mercadopago.com/oauth/token'
