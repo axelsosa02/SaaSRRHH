@@ -31,7 +31,7 @@ export function PayButton({ orgId, orgSlug, colorBrand = '#472825' }: PayButtonP
             const prefRes = await fetch('/api/mercadopago/create-preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orgSlug, token }),
+                body: JSON.stringify({ orgId, orgSlug, token }),
             })
 
             if (!prefRes.ok) throw new Error('No se pudo crear la preferencia de pago')

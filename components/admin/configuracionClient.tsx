@@ -5,6 +5,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Settings, Loader2, ImageIcon, CreditCard } from 'lucide-react'
+import { MercadoPagoConnect } from '@/components/admin/MercadoPagoConnect'
 import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -143,6 +144,10 @@ export function ConfiguracionClient({ org, sections }: Props) {
     // Estado para cobro por postulación
     const [cobroPostulacion, setCobroPostulacion] = useState<boolean>(org.cobro_postulacion ?? true)
     const [savingCobro, setSavingCobro] = useState(false)
+
+    // Estado MP (leído del server, actualizado por el widget)
+    const mpConnected = org.mp_connected ?? false
+    const mpUserId = org.mp_user_id ?? null
 
     // Desestructuración de las secciones de la landing para facilitar el acceso
     const hero = sections.hero as HeroContent | undefined
@@ -517,6 +522,14 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         </button>
                     </div>
                 </SectionCard>
+
+                {/* ── Widget de Mercado Pago ── */}
+                {cobroPostulacion && (
+                    <MercadoPagoConnect
+                        mpConnected={mpConnected}
+                        mpUserId={mpUserId}
+                    />
+                )}
                 </>
             )}
 
