@@ -3,16 +3,22 @@ import { getCandidates } from "@/lib/data/candidates"
 import { getAreas } from "@/lib/services/areas/getAreas"
 import { getExperience } from "@/lib/services/experiencia/getExperience"
 import { getAvailability } from "@/lib/services/disponibilidad/getAvailability"
+import { getCurrentUserWithOrg } from "@/lib/services/users"
+import { getActiveJobsByOrg } from "@/lib/queries/jobs"
 import { Users } from "lucide-react"
 
 export default async function PostulantesPage() {
 
-    const [postulantes, areas, experience, availability] = await Promise.all([
+    const currentUser = await getCurrentUserWithOrg()
+    const orgId = currentUser?.org_id ?? ''
+
+    const [postulantes, areas, experience, availability, jobs] = await Promise.all([
         getCandidates(),
         getAreas(),
         getExperience(),
         getAvailability(),
-    ]);
+        orgId ? getActiveJobsByOrg(orgId) : Promise.resolve([]),
+    ])
 
 
     return (
@@ -36,6 +42,8 @@ export default async function PostulantesPage() {
                 areas={areas}
                 experience={experience}
                 availability={availability}
+                orgId={orgId}
+                jobs={jobs}
             />
         </div>
     )

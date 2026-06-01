@@ -6,6 +6,7 @@ export type SectionType =
     | 'como_postularse'
     | 'contacto'
     | 'footer'
+    | 'servicios'
 
 // Contenido tipado por sección
 export interface HeroContent {
@@ -51,6 +52,20 @@ export interface FooterContent {
     texto: string
 }
 
+export interface ServiciosItem {
+    title: string
+    description: string
+    image?: string
+    cta_text?: string
+    cta_url?: string
+}
+
+export interface ServiciosContent {
+    title: string
+    subtitle?: string
+    items: ServiciosItem[]
+}
+
 // Unión de todos los content posibles
 export type SectionContent =
     | HeroContent
@@ -58,6 +73,7 @@ export type SectionContent =
     | ComoPostularseContent
     | ContactoContent
     | FooterContent
+    | ServiciosContent
 
 export interface LandingSection {
     id: string

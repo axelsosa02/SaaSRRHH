@@ -17,9 +17,16 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, X } from "lucide-react"
+import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus, Upload, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { toast } from "react-hot-toast"
+import { Loader2 } from "lucide-react"
 
-import type { Area, Availability, Experience } from "@/types/database"
+import type { Area, Availability, Experience, Job } from "@/types/database"
 import type { Candidates } from "@/types/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,6 +46,24 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { Textarea } from "@/components/ui/textarea"
+import { createCandidate } from "@/lib/services/createCandidate"
+import { createClient } from "@/lib/supabase/client"
 
 // ── Helpers de color por variante ──────────────────────────────────────────────
 
@@ -124,8 +149,8 @@ const columns: ColumnDef<Candidates>[] = [
             // Si el valor es "all" o no hay valor, no aplica filtro (muestra todos)
             if (!value || value === "all") return true
             return row.getValue(columnId) === value
-        },
-    },
+        },                       
+    },                
     {
         // Columna de Experiencia con filtro exacto
         accessorKey: "experiencia",
@@ -249,16 +274,38 @@ const columns: ColumnDef<Candidates>[] = [
     },
 ]
 
+// ── Schema del formulario de candidato ────────────────────────────────────────
+
+const candidateFormSchema = z.object({
+    nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+    apellido: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+    email: z.string().email('Email inválido'),
+    telefono: z.string().min(8, 'Teléfono inválido'),
+    area: z.string().min(2, 'Área inválida'),
+    localidad: z.string().min(2, 'Localidad inválida'),
+    provincia: z.string().min(2, 'Provincia inválida'),
+    disponibilidad: z.string().min(1, 'Requerido'),
+    experiencia: z.string().min(1, 'Requerido'),
+    jobId: z.string().optional(),
+    resumen: z.string().optional(),
+})
+
+type CandidateFormValues = z.infer<typeof candidateFormSchema>
+
 interface PostulantesTableProps {
     data: Candidates[]
     areas: Area[]
     experience: Experience[]
     availability: Availability[]
+    orgId: string
+    jobs: Job[]
 }
 
 // ── Componente Principal ───────────────────────────────────────────────────────
 
-export function PostulantesTable({ data, areas, experience, availability }: PostulantesTableProps) {
+export function PostulantesTable({ data, areas, experience, availability, orgId, jobs }: PostulantesTableProps) {
+    const router = useRouter()
+    const [sheetOpen, setSheetOpen] = useState(false)
     // Estado para el ordenamiento de las columnas
     const [sorting, setSorting] = React.useState<SortingState>([
         { id: "fechaPostulacion", desc: true },
@@ -303,6 +350,72 @@ export function PostulantesTable({ data, areas, experience, availability }: Post
         initialState: { pagination: { pageSize: 10 } },
     })
 
+    // ── Formulario de nuevo candidato ──────────────────────────────────────────
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [submitting, setSubmitting] = useState(false)
+
+    const candidateForm = useForm<CandidateFormValues>({
+        resolver: zodResolver(candidateFormSchema),
+        defaultValues: {
+            nombre: '', apellido: '', email: '', telefono: '',
+            area: '', localidad: '', provincia: '',
+            disponibilidad: '', experiencia: '', jobId: 'general', resumen: '',
+        },
+    })
+
+    const handleCVFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        const ext = file.name.split('.').pop()?.toLowerCase()
+        if (!allowed.includes(file.type) && !['pdf', 'doc', 'docx'].includes(ext ?? '')) {
+            toast.error('Solo se permiten archivos PDF o Word'); return
+        }
+        if (file.size > 5 * 1024 * 1024) { toast.error('El archivo no puede superar los 5 MB'); return }
+        setSelectedFile(file)
+    }
+
+    const onSubmitCandidate = async (values: CandidateFormValues) => {
+        setSubmitting(true)
+        try {
+            let cvUrl: string | undefined
+            if (selectedFile) {
+                const supabase = createClient()
+                const ext = selectedFile.name.split('.').pop()
+                const path = `cv/${orgId}/admin_${crypto.randomUUID()}.${ext}`
+                const { error: uploadError } = await supabase.storage.from('documents').upload(path, selectedFile, { upsert: true })
+                if (uploadError) throw uploadError
+                const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path)
+                cvUrl = urlData.publicUrl
+            }
+            const jobId = values.jobId === 'general' ? undefined : values.jobId
+            await createCandidate({
+                org_id: orgId,
+                nombre: values.nombre,
+                apellido: values.apellido,
+                email: values.email,
+                telefono: values.telefono,
+                area: values.area,
+                localidad: values.localidad,
+                provincia: values.provincia,
+                disponibilidad: values.disponibilidad,
+                experiencia: values.experiencia,
+                resumen: values.resumen,
+                cv_url: cvUrl,
+            }, jobId)
+            toast.success('Candidato agregado correctamente')
+            candidateForm.reset()
+            setSelectedFile(null)
+            setSheetOpen(false)
+            router.refresh()
+        } catch (err) {
+            console.error(err)
+            toast.error('Error al crear el candidato')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
     // Determina si hay algún filtro activo para mostrar el botón de "Limpiar"
     const hasFilters =
         globalFilter !== "" ||
@@ -326,9 +439,22 @@ export function PostulantesTable({ data, areas, experience, availability }: Post
     }
 
     return (
+        <>
         <div className="space-y-4 ">
             {/* ── SECCIÓN DE FILTROS ── */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                {/* Botón Agregar candidato */}
+                <Button
+                    id="add-candidate-btn"
+                    size="sm"
+                    className="h-8 gap-1.5"
+                    onClick={() => setSheetOpen(true)}
+                >
+                    <UserPlus className="size-3.5" />
+                    Agregar candidato
+                </Button>
+
+                <div className="flex-1 h-px sm:hidden" />
                 {/* Búsqueda Global: Filtra por nombre, email o puesto */}
                 <div className="relative flex-1 min-w-[200px]">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
@@ -496,5 +622,149 @@ export function PostulantesTable({ data, areas, experience, availability }: Post
                 </div>
             </div>
         </div>
+
+        {/* ── SHEET: Formulario de nuevo candidato ── */}
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetContent className="w-full p-2 sm:max-w-xl data-[side=right]:sm:max-w-xl overflow-y-auto">
+                <SheetHeader className="">
+                    <SheetTitle>Agregar candidato</SheetTitle>
+                    <SheetDescription>
+                        Completá los datos del candidato. No se requerirá pago ni se enviará email automático.
+                    </SheetDescription>
+                </SheetHeader>
+
+                <Form {...candidateForm}>
+                    <form onSubmit={candidateForm.handleSubmit(onSubmitCandidate)} className="space-y-5">
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={candidateForm.control} name="nombre" render={({ field }) => (
+                                <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="Nombre" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={candidateForm.control} name="apellido" render={({ field }) => (
+                                <FormItem><FormLabel>Apellido</FormLabel><FormControl><Input placeholder="Apellido" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={candidateForm.control} name="email" render={({ field }) => (
+                                <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="email@ejemplo.com" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={candidateForm.control} name="telefono" render={({ field }) => (
+                                <FormItem><FormLabel>Teléfono</FormLabel><FormControl><Input placeholder="+54 9 11..." {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={candidateForm.control} name="localidad" render={({ field }) => (
+                                <FormItem><FormLabel>Localidad</FormLabel><FormControl><Input placeholder="Localidad" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={candidateForm.control} name="provincia" render={({ field }) => (
+                                <FormItem><FormLabel>Provincia</FormLabel><FormControl><Input placeholder="Provincia" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+
+                        <FormField control={candidateForm.control} name="area" render={({ field }) => (
+                            <FormItem><FormLabel>Área de interés</FormLabel><FormControl><Input placeholder="Ej: Recursos Humanos, Marketing..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={candidateForm.control} name="experiencia" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Experiencia</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        items={experience.map((e) => ({ value: e.id, label: e.description }))}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Seleccioná" /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {experience.map(e => <SelectItem key={e.id} value={e.id}>{e.description}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={candidateForm.control} name="disponibilidad" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Disponibilidad</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}
+                                        items={availability.map(d => ({ value: d.id, label: d.nombre }))}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Seleccioná" /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {availability.map(d => <SelectItem key={d.id} value={d.id}>{d.nombre}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+
+                        <FormField control={candidateForm.control} name="jobId" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>¿A qué puesto se postula?</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Seleccioná un puesto" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="general">Interés General (Caza talentos)</SelectItem>
+                                        {jobs.map(job => <SelectItem key={job.id} value={job.id}>{job.titulo}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        {/* CV Upload */}
+                        <div className="space-y-2">
+                            <FormLabel>Currículum Vitae (CV)</FormLabel>
+                            {selectedFile ? (
+                                <div className="border rounded-xl p-3 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="size-4 text-muted-foreground" />
+                                        <div>
+                                            <p className="text-sm font-medium truncate max-w-[200px]">{selectedFile.name}</p>
+                                            <p className="text-xs text-muted-foreground">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                                        </div>
+                                    </div>
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedFile(null)} className="text-rose-500 hover:text-rose-700">
+                                        Quitar
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="border-2 border-dashed rounded-xl p-5 text-center transition-colors cursor-pointer group">
+                                    <input type="file" className="hidden" id="admin-cv-upload" accept=".pdf,.doc,.docx" onChange={handleCVFile} />
+                                    <label htmlFor="admin-cv-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                                        <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                                            <Upload className="size-4 text-muted-foreground group-hover:text-primary" />
+                                        </div>
+                                        <p className="text-sm font-medium">Subir CV</p>
+                                        <p className="text-xs text-muted-foreground">PDF o Word (máx. 5 MB)</p>
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+
+                        <FormField control={candidateForm.control} name="resumen" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Resumen profesional <span className="text-muted-foreground">(opcional)</span></FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Brevísíma descripción del candidato..." className="min-h-[80px]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <Button type="submit" className="w-full" disabled={submitting}>
+                            {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Guardando...</> : 'Guardar candidato'}
+                        </Button>
+                    </form>
+                </Form>
+            </SheetContent>
+        </Sheet>
+        </>
     )
 }

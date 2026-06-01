@@ -36,6 +36,9 @@ export function Navbar({ logoUrl, nombre, slug, colorBrand }: NavbarProps) {
                     <Link href={`/${slug}#quienes-somos`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
                         Quiénes Somos
                     </Link>
+                    <Link href={`/${slug}#servicios`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
+                        Servicios
+                    </Link>
                     <Link href={`/${slug}#vacantes`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
                         Vacantes
                     </Link>
@@ -83,6 +86,9 @@ export function Navbar({ logoUrl, nombre, slug, colorBrand }: NavbarProps) {
                         </Link>
                         <Link href={`/${slug}#quienes-somos`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
                             Quiénes Somos
+                        </Link>
+                        <Link href={`/${slug}#servicios`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
+                            Servicios
                         </Link>
                         <Link href={`/${slug}#vacantes`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
                             Vacantes

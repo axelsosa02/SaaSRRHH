@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import { upsertSection } from '@/lib/services/configuracion landing/landingSections'
-import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, updateOrgPago, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
+import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, updateOrgPago, uploadSectionImage, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
 // En tus imports
 import type {
     SectionMap,
@@ -21,14 +21,15 @@ import type {
     QuienesSomosContent,
     ComoPostularseContent,
     ContactoContent,
-    FooterContent
+    FooterContent,
+    ServiciosContent
 } from '@/types/landingSections'
 
 
 /**
  * Tipos de pestañas disponibles en el panel de configuración
  */
-type Tab = 'general' | 'hero' | 'quienes_somos' | 'como_postularse' | 'contacto' | 'emails'
+type Tab = 'general' | 'hero' | 'quienes_somos' | 'como_postularse' | 'servicios' | 'contacto' | 'emails'
 
 /**
  * Definición de las pestañas para la navegación del panel
@@ -38,6 +39,7 @@ const TABS: { id: Tab; label: string }[] = [
     { id: 'hero', label: 'Hero' },
     { id: 'quienes_somos', label: 'Quiénes somos' },
     { id: 'como_postularse', label: 'Cómo postularse' },
+    { id: 'servicios', label: 'Servicios' },
     { id: 'contacto', label: 'Contacto y footer' },
     { id: 'emails', label: 'Correos automáticos' },
 ]
@@ -97,6 +99,20 @@ const contactoSchema = z.object({
     footer_texto: z.string().optional(),
 })
 
+const serviciosItemSchema = z.object({
+    title: z.string().min(1, 'Requerido'),
+    description: z.string().min(1, 'Requerido'),
+    image: z.string().optional(),
+    cta_text: z.string().optional(),
+    cta_url: z.string().optional(),
+})
+
+const serviciosSchema = z.object({
+    title: z.string().min(1, 'Requerido'),
+    subtitle: z.string().optional(),
+    items: z.array(serviciosItemSchema).min(1, 'Agregá al menos un servicio'),
+})
+
 const emailsSchema = z.object({
     mail_bienvenida_asunto: z.string().min(1, 'Requerido'),
     mail_bienvenida: z.string().min(1, 'Requerido'),
@@ -110,6 +126,7 @@ type GeneralValues = z.infer<typeof generalSchema>
 type HeroValues = z.infer<typeof heroSchema>
 type QuienesSomosValues = z.infer<typeof quienesSomosSchema>
 type ComoPostularseValues = z.infer<typeof comoPostularseSchema>
+type ServiciosValues = z.infer<typeof serviciosSchema>
 type ContactoValues = z.infer<typeof contactoSchema>
 type EmailsValues = z.infer<typeof emailsSchema>
 
@@ -153,6 +170,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
     const hero = sections.hero as HeroContent | undefined
     const quienes = sections.quienes_somos as QuienesSomosContent | undefined
     const como = sections.como_postularse as ComoPostularseContent | undefined
+    const servicios = sections.servicios as ServiciosContent | undefined
     const contacto = sections.contacto as ContactoContent | undefined
     const footer = sections.footer as FooterContent | undefined
 
@@ -224,6 +242,26 @@ export function ConfiguracionClient({ org, sections }: Props) {
         },
     })
 
+    /** Formulario Servicios */
+    const serviciosForm = useForm<ServiciosValues>({
+        resolver: zodResolver(serviciosSchema),
+        defaultValues: {
+            title: getStr(servicios, 'title') || 'Nuestros Servicios',
+            subtitle: getStr(servicios, 'subtitle'),
+            items: servicios?.items && servicios.items.length > 0
+                ? servicios.items
+                : [
+                    { title: '', description: '', image: '', cta_text: 'Ver más', cta_url: '#' },
+                    { title: '', description: '', image: '', cta_text: 'Ver más', cta_url: '#' },
+                ],
+        },
+    })
+
+    const { fields: serviciosFields, append: appendServicio, remove: removeServicio } = useFieldArray({
+        control: serviciosForm.control,
+        name: 'items',
+    })
+
     /** Formulario Contacto y Footer */
     const contactoForm = useForm<ContactoValues>({
         resolver: zodResolver(contactoSchema),
@@ -285,6 +323,14 @@ export function ConfiguracionClient({ org, sections }: Props) {
             ]
             await upsertSection('como_postularse', { title: data.title, steps }, 3)
             toast.success('Pasos guardados')
+        } catch { toast.error('Error al guardar') }
+    }
+
+    /** Guarda/Actualiza la sección Servicios en 'landing_sections' */
+    const onSaveServicios = async (data: ServiciosValues) => {
+        try {
+            await upsertSection('servicios', data, 3)
+            toast.success('Servicios guardados')
         } catch { toast.error('Error al guardar') }
     }
 
@@ -354,6 +400,98 @@ export function ConfiguracionClient({ org, sections }: Props) {
             </Button>
         </div>
     )
+
+    /**
+     * Campo de imagen con subida desde el dispositivo.
+     * Al seleccionar un archivo lo sube a Storage y actualiza el campo del form con la URL pública.
+     * También acepta pegar una URL manualmente como fallback.
+     */
+    const SectionImageUpload = ({
+        value,
+        onChange,
+        slot,
+        label = 'Imagen',
+    }: {
+        value: string
+        onChange: (url: string) => void
+        slot: string
+        label?: string
+    }) => {
+        const [uploading, setUploading] = useState(false)
+
+        const handleFile = async (file: File) => {
+            const allowed = ['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp']
+            if (!allowed.includes(file.type)) { toast.error('Solo PNG, SVG, JPG o WEBP'); return }
+            if (file.size > 5 * 1024 * 1024) { toast.error('Máx. 5 MB'); return }
+            setUploading(true)
+            try {
+                const url = await uploadSectionImage(file, slot)
+                onChange(url)
+                toast.success('Imagen subida')
+            } catch {
+                toast.error('Error al subir la imagen')
+            } finally {
+                setUploading(false)
+            }
+        }
+
+        return (
+            <div className="space-y-2">
+                <p className="text-sm font-medium">{label} <span className="text-muted-foreground">(opcional)</span></p>
+
+                {/* Preview o zona de subida */}
+                <label className="cursor-pointer block">
+                    <div className="border-2 border-dashed rounded-xl p-4 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                        {uploading ? (
+                            <div className="flex flex-col items-center gap-2 py-2">
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                                <p className="text-xs text-muted-foreground">Subiendo imagen...</p>
+                            </div>
+                        ) : value ? (
+                            <div className="flex flex-col items-center gap-2">
+                                <img src={value} alt="Preview" className="h-28 w-full object-cover rounded-lg" />
+                                <p className="text-xs text-primary">Click para reemplazar</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-2 py-2">
+                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <ImageIcon className="h-5 w-5 text-primary" />
+                                </div>
+                                <p className="text-xs font-medium">Subir imagen</p>
+                                <p className="text-xs text-muted-foreground">PNG · JPG · WEBP · máx. 5 MB</p>
+                            </div>
+                        )}
+                    </div>
+                    <input
+                        type="file"
+                        className="hidden"
+                        accept=".png,.jpg,.jpeg,.webp,.svg"
+                        disabled={uploading}
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }}
+                    />
+                </label>
+
+                {/* URL manual como fallback */}
+                <Input
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    placeholder="O pegá una URL externa: https://..."
+                    className="text-xs"
+                />
+
+                {/* Botón limpiar */}
+                {value && (
+                    <button
+                        type="button"
+                        onClick={() => onChange('')}
+                        className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                        × Quitar imagen
+                    </button>
+                )}
+            </div>
+        )
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -648,6 +786,88 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         ))}
 
                         <FormActions form={comoPostularseForm} onReset={() => comoPostularseForm.reset()} />
+                    </form>
+                </Form>
+            )}
+
+            {/* ── TAB SERVICIOS ────────────────────────────────────────────── */}
+            {activeTab === 'servicios' && (
+                <Form {...serviciosForm}>
+                    <form onSubmit={serviciosForm.handleSubmit(onSaveServicios)} className="flex flex-col gap-4">
+                        <SectionCard
+                            title="Sección Servicios"
+                            desc="Presentá los servicios o propuestas de valor con imagen, título, descripción y botón de acción."
+                        >
+                            <FormField control={serviciosForm.control} name="title" render={({ field }) => (
+                                <FormItem><FormLabel>Título de la sección</FormLabel><FormControl><Input {...field} placeholder="Nuestros Servicios" /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={serviciosForm.control} name="subtitle" render={({ field }) => (
+                                <FormItem><FormLabel>Subtítulo <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Textarea {...field} rows={2} placeholder="Descripción general de los servicios..." /></FormControl></FormItem>
+                            )} />
+                        </SectionCard>
+
+                        {serviciosFields.map((item, index) => (
+                            <SectionCard
+                                key={item.id}
+                                title={`Servicio ${index + 1}`}
+                                desc={index % 2 === 0 ? 'Imagen a la izquierda, texto a la derecha.' : 'Texto a la izquierda, imagen a la derecha.'}
+                            >
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField control={serviciosForm.control} name={`items.${index}.title`} render={({ field }) => (
+                                        <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} placeholder="Nombre del servicio" /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                    <FormField
+                                        control={serviciosForm.control}
+                                        name={`items.${index}.image`}
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormControl>
+                                                    <SectionImageUpload
+                                                        value={field.value ?? ''}
+                                                        onChange={field.onChange}
+                                                        slot={`servicios_${index}`}
+                                                        label="Imagen"
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <FormField control={serviciosForm.control} name={`items.${index}.description`} render={({ field }) => (
+                                    <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={3} placeholder="Descripción del servicio..." /></FormControl><FormMessage /></FormItem>
+                                )} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField control={serviciosForm.control} name={`items.${index}.cta_text`} render={({ field }) => (
+                                        <FormItem><FormLabel>Texto del botón <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="Ver más" /></FormControl></FormItem>
+                                    )} />
+                                    <FormField control={serviciosForm.control} name={`items.${index}.cta_url`} render={({ field }) => (
+                                        <FormItem><FormLabel>URL del botón <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://... o #seccion" /></FormControl></FormItem>
+                                    )} />
+                                </div>
+                                {serviciosFields.length > 1 && (
+                                    <div className="flex justify-end">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => removeServicio(index)}
+                                            className="text-destructive hover:text-destructive"
+                                        >
+                                            Eliminar servicio
+                                        </Button>
+                                    </div>
+                                )}
+                            </SectionCard>
+                        ))}
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => appendServicio({ title: '', description: '', image: '', cta_text: 'Ver más', cta_url: '#' })}
+                        >
+                            + Agregar servicio
+                        </Button>
+
+                        <FormActions form={serviciosForm} onReset={() => serviciosForm.reset()} />
                     </form>
                 </Form>
             )}

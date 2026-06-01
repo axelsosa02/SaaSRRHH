@@ -110,3 +110,34 @@ export async function updateOrgLogo(file: File): Promise<string> {
 
     return urlData.publicUrl
 }
+
+/**
+ * Sube una imagen de sección a Supabase Storage y retorna la URL pública.
+ * No actualiza la DB — el form se encarga de persistir la URL al guardar.
+ * @param file  Archivo a subir
+ * @param slot  Identificador único del slot (e.g. "servicios_0", "servicios_1")
+ */
+export async function uploadSectionImage(file: File, slot: string): Promise<string> {
+    const supabase = createBrowserClient()
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) throw new Error('No autenticado')
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', userData.user.id)
+        .single()
+
+    const ext = file.name.split('.').pop()
+    const path = `${profile?.org_id}/sections/${slot}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(path, file, { upsert: true })
+
+    if (uploadError) throw uploadError
+
+    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(path)
+
+    return urlData.publicUrl
+}

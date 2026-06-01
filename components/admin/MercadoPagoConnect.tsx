@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle2, Link2, Link2Off, Loader2, AlertCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useSearchParams } from 'next/navigation'
+import Swal from 'sweetalert2'
 
 interface MercadoPagoConnectProps {
     mpConnected: boolean
@@ -44,19 +45,28 @@ export function MercadoPagoConnect({ mpConnected: initialConnected, mpUserId }: 
     }
 
     const handleDisconnect = async () => {
-        if (!confirm('¿Desconectar Mercado Pago? Los candidatos no podrán pagar hasta que vuelvas a conectar.')) return
-
-        setDisconnecting(true)
-        try {
-            const res = await fetch('/api/mercadopago/oauth/disconnect', { method: 'POST' })
-            if (!res.ok) throw new Error()
-            setConnected(false)
-            toast.success('Mercado Pago desconectado.')
-        } catch {
+        Swal.fire({
+            title: '¿Desconectar Mercado Pago?',
+            text: 'Los candidatos no podrán pagar hasta que vuelvas a conectar.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, desconectar',
+            cancelButtonText: 'Cancelar',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                setDisconnecting(true)
+                try {
+                    const res = await fetch('/api/mercadopago/oauth/disconnect', { method: 'POST' })
+                    if (!res.ok) throw new Error()
+                    setConnected(false)
+                    toast.success('Mercado Pago desconectado.')
+                } catch {
             toast.error('Error al desconectar. Intentá de nuevo.')
         } finally {
             setDisconnecting(false)
-        }
+                }
+            }
+        })
     }
 
     return (

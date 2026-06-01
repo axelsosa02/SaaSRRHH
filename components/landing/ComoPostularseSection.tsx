@@ -7,7 +7,7 @@ interface ComoPostularseSectionProps {
 
 export function ComoPostularseSection({ content, colorBrand }: ComoPostularseSectionProps) {
     return (
-        <section id="como-postularse" className="py-24 bg-[#fdfbf7] w-full border-y border-[#c1a280]/15">
+        <section id="como-postularse" className="py-24  w-full border-y border-[#c1a280]/15">
             <div className="container max-w-7xl mx-auto px-6 flex flex-col gap-12 lg:gap-16 justify-center items-center lg:items-start w-full">
 
                 <div className="w-full flex flex-col gap-4 text-center lg:text-left">

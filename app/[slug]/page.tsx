@@ -17,8 +17,10 @@ import {
     ComoPostularseContent,
     ContactoContent,
     FooterContent,
-    LandingSection
+    LandingSection,
+    ServiciosContent
 } from '@/types/landingSections'
+import ServicioSection from '@/components/landing/Servicios'
 
 export default async function Page({ params, }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
@@ -38,10 +40,23 @@ export default async function Page({ params, }: { params: Promise<{ slug: string
 
     const colorBrand = '#c1a280'
 
+    // Orden visual deseado de las secciones (independiente del campo `order` en DB)
+    const SECTION_ORDER: Record<string, number> = {
+        hero: 1,
+        quienes_somos: 2,
+        servicios: 3,
+        como_postularse: 4,
+        contacto: 5,
+        footer: 6,
+    }
+
     return (
         <div className="flex flex-col w-full">
             {/* Renderizado dinámico de secciones */}
-            {sections.filter(s => s.is_active).map((section) => {
+            {sections
+                .filter(s => s.is_active)
+                .sort((a, b) => (SECTION_ORDER[a.type] ?? 99) - (SECTION_ORDER[b.type] ?? 99))
+                .map((section) => {
                 switch (section.type) {
                     case 'hero':
                         return (
@@ -57,6 +72,14 @@ export default async function Page({ params, }: { params: Promise<{ slug: string
                             <QuienesSomosSection
                                 key={section.id}
                                 content={section.content as QuienesSomosContent}
+                            />
+                        )
+                    case 'servicios':
+                        return (
+                            <ServicioSection
+                                key={section.id}
+                                content={section.content as ServiciosContent}
+                                colorBrand={colorBrand}
                             />
                         )
                     case 'como_postularse':
