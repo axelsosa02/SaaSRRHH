@@ -52,18 +52,30 @@ export async function updateJob(id: string, data: JobInput) {
         modalidad: data.modalidad,
         localidad: data.localidad,
         visibility: data.visibility,
-    }).eq('id', id)
+    }).eq('id', id).eq('org_id', profile?.org_id)
 
     if (error) throw error
 }
 
 export async function toggleJobVisibility(id: string, visibility: boolean) {
     const supabase = createClient()
-    //hacemos el update de la visibilidad del puesto
+
+    // Obtener org_id del usuario para validar pertenencia
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) throw new Error("No se encontró el usuario")
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', userData.user.id)
+        .single()
+
+    //hacemos el update de la visibilidad del puesto (solo si pertenece a la org)
     const { error } = await supabase
         .from('jobs')
         .update({ visibility })
         .eq('id', id)
+        .eq('org_id', profile?.org_id)
 
     if (error) throw error
 }

@@ -27,6 +27,38 @@ export interface DashboardMetrics {
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const supabase = await createClientServer()
 
+    // Obtener org_id del usuario actual
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No se encontró el usuario')
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', user.id)
+        .single()
+
+    const orgId = profile?.org_id
+    if (!orgId) {
+        // Organización sin datos — devolver métricas vacías
+        return {
+            totalCandidatos: 0,
+            candidatosEstaSemana: 0,
+            puestosActivos: 0,
+            entrevistados: 0,
+            contratados: 0,
+            candidatosPorArea: [],
+            candidatosPorEstado: [
+                { estado: 'candidato', total: 0 },
+                { estado: 'entrevistando', total: 0 },
+                { estado: 'evaluacion', total: 0 },
+                { estado: 'descalificado', total: 0 },
+                { estado: 'contratado', total: 0 },
+            ],
+            ultimosPostulantes: [],
+            actividadReciente: [],
+        }
+    }
+
     // Calcular fecha de inicio de la semana actual
     const hoy = new Date()
     const inicioSemana = new Date(hoy)
@@ -34,6 +66,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const inicioSemanaISO = inicioSemana.toISOString()
 
     // Ejecutar todas las queries en paralelo para máxima velocidad
+    // TODAS filtradas por org_id para aislamiento de datos
     const [
         { count: totalCandidatos },
         { count: candidatosEstaSemana },
@@ -45,57 +78,66 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         { data: contratadosRaw },
         { data: emailsRecientes },
     ] = await Promise.all([
-        // Total de candidatos
-        supabase
-            .from('candidates')
-            .select('*', { count: 'exact', head: true }),
-
-        // Candidatos de esta semana
+        // Total de candidatos (de esta org)
         supabase
             .from('candidates')
             .select('*', { count: 'exact', head: true })
+            .eq('org_id', orgId),
+
+        // Candidatos de esta semana (de esta org)
+        supabase
+            .from('candidates')
+            .select('*', { count: 'exact', head: true })
+            .eq('org_id', orgId)
             .gte('created_at', inicioSemanaISO),
 
-        // Puestos activos
+        // Puestos activos (de esta org)
         supabase
             .from('jobs')
             .select('*', { count: 'exact', head: true })
+            .eq('org_id', orgId)
             .eq('activo', true),
 
-        // Entrevistados
+        // Entrevistados (de esta org)
         supabase
             .from('candidates')
             .select('*', { count: 'exact', head: true })
+            .eq('org_id', orgId)
             .eq('entrevistado', true),
 
-        // Candidatos por área
+        // Candidatos por área (de esta org)
         supabase
             .from('candidates')
             .select('area_id')
+            .eq('org_id', orgId)
             .not('area_id', 'is', null),
 
-        // Estados del kanban (job_candidates)
+        // Estados del kanban — filtrar por jobs de esta org
         supabase
             .from('job_candidates')
-            .select('estado'),
+            .select('estado, jobs!inner(org_id)')
+            .eq('jobs.org_id', orgId),
 
-        // Últimos 4 postulantes
+        // Últimos 4 postulantes (de esta org)
         supabase
             .from('candidates')
             .select('id, nombre, apellido, area_id, localidad, created_at')
+            .eq('org_id', orgId)
             .order('created_at', { ascending: false })
             .limit(4),
 
-        // Contratados este mes
+        // Contratados (de esta org, via jobs)
         supabase
             .from('job_candidates')
-            .select('*', { count: 'exact', head: true })
+            .select('*, jobs!inner(org_id)', { count: 'exact', head: true })
+            .eq('jobs.org_id', orgId)
             .eq('estado', 'contratado'),
 
-        // Emails recientes
+        // Emails recientes (de candidatos de esta org)
         supabase
             .from('emails')
-            .select('id, candidate_id, asunto, created_at, candidates(nombre, apellido)')
+            .select('id, candidate_id, asunto, created_at, candidates!inner(nombre, apellido, org_id)')
+            .eq('candidates.org_id', orgId)
             .order('created_at', { ascending: false })
             .limit(3),
     ])
