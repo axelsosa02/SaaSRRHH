@@ -12,9 +12,10 @@ interface KanbanColumnProps {
     colorClass: string
     candidates: JobCandidate[]
     jobId: string
+    onRemoveCandidate: (jobCandidateId: string) => void
 }
 
-export function KanbanColumn({ id, label, colorClass, candidates, jobId }: KanbanColumnProps) {
+export function KanbanColumn({ id, label, colorClass, candidates, jobId, onRemoveCandidate }: KanbanColumnProps) {
     const { setNodeRef, isOver } = useDroppable({ id })
 
     return (
@@ -43,6 +44,7 @@ export function KanbanColumn({ id, label, colorClass, candidates, jobId }: Kanba
                         key={jc.id}
                         jobCandidate={jc}
                         jobId={jobId}
+                        onRemoveCandidate={onRemoveCandidate}
                     />
                 ))}
 

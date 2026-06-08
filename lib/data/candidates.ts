@@ -4,12 +4,13 @@ import type { Candidates } from "@/types/ui"
 
 /**
  * Tipo que representa la fila de `candidates` tal como la devuelve Supabase
- * al hacer el join con `areas`, `experience` y `availability`.
+ * al hacer el join con `areas`, `experience`, `availability` y `candidate_tags`.
  * Los campos relacionales son objetos anidados (o null si no hay relación).
  */
 type CandidateRow = CandidateDB & {
     experience: { description: string } | null
     availability: { nombre: string } | null
+    candidate_tags: { tag: { nombre: string } | null }[] | null
 }
 
 export async function getCandidates(): Promise<Candidates[]> {
@@ -22,7 +23,8 @@ export async function getCandidates(): Promise<Candidates[]> {
         .select(`
             *,
             experience:experience(description),
-            availability:availability(nombre)
+            availability:availability(nombre),
+            candidate_tags(tag:tags(nombre))
         `)
 
     // Si hay error o no hay data, retornamos un array vacío
@@ -45,5 +47,9 @@ export async function getCandidates(): Promise<Candidates[]> {
         cv_url: c.cv_url ?? undefined,       // campo correcto para la columna CV
         fechaPostulacion: c.created_at?.split("T")[0] ?? "",
         puesto: "Sin asignar",
+        tags: (c.candidate_tags ?? [])
+            .map((ct) => ct.tag?.nombre)
+            .filter((n): n is string => Boolean(n)),
     }))
 }
+

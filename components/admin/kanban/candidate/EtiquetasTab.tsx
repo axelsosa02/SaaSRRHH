@@ -11,9 +11,8 @@ import {
     createTag,
     assignTagToCandidate,
     removeTagFromCandidate,
-    type Tag as TagType,
-    type CandidateTag,
 } from '@/lib/services/kanban/candidateProfile'
+import { Tag as TagType, CandidateTag } from '@/types/database'
 
 // Colores predefinidos para las etiquetas (se asignan según el hash del nombre)
 const TAG_COLORS = [

@@ -5,11 +5,15 @@ import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { JobCandidate } from '@/types/ui'
+import { Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import toast from 'react-hot-toast'
 
 interface KanbanCardProps {
     jobCandidate: JobCandidate
     jobId: string
     isDragging?: boolean
+    onRemoveCandidate: (jobCandidateId: string) => void
 }
 
 function getInitials(nombre: string, apellido: string) {
@@ -39,7 +43,7 @@ function getAvatarColor(id: string) {
     return AVATAR_COLORS[index]
 }
 
-export function KanbanCard({ jobCandidate, jobId, isDragging }: KanbanCardProps) {
+export function KanbanCard({ jobCandidate, jobId, isDragging, onRemoveCandidate }: KanbanCardProps) {
     const router = useRouter()
     const { candidate } = jobCandidate
 
@@ -89,6 +93,19 @@ export function KanbanCard({ jobCandidate, jobId, isDragging }: KanbanCardProps)
                     <p className="text-xs text-muted-foreground truncate">
                         {candidate.localidad || candidate.area || candidate.email}
                     </p>
+                </div>
+                <div className="ml-auto">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive hover:text-destructive hover:bg-red-500/10"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onRemoveCandidate(jobCandidate.id)
+                        }}
+                    >
+                        <Trash2 className="h-3 w-3" />
+                    </Button>
                 </div>
             </div>
 

@@ -206,3 +206,13 @@ export async function getAvailableCandidates(jobId: string) {
     if (error) throw error
     return candidates
 }
+
+// Elimina un candidato de un puesto
+export async function removeCandidateFromJob(jobCandidateId: string) {
+    const supabase = createClient()
+    const { error } = await supabase
+        .from('job_candidates')
+        .delete()
+        .eq('id', jobCandidateId)
+    if (error) throw error
+}

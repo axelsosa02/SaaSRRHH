@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/button'
 import { KanbanColumn } from '@/components/admin/kanban/kanbanColumn'
 import { KanbanCard } from '@/components/admin/kanban/kanbanCard'
 import { AddCandidateModal } from '@/components/admin/kanban/addCandidateModal'
-import { getJobCandidates, moveCandidate } from '@/lib/services/kanban/kanban'
+import { getJobCandidates, moveCandidate, removeCandidateFromJob } from '@/lib/services/kanban/kanban'
 import { getJobs } from '@/lib/services/puestos/getJobs'
 import type { JobCandidate } from '@/types/ui'
 import type { KanbanEstado } from '@/types/enums'
 import type { Job } from '@/types/database'
+import Swal from 'sweetalert2'
 
 const COLUMNAS: { id: KanbanEstado; label: string; color: string }[] = [
     { id: 'candidato', label: 'Candidatos', color: 'border-t-gray-400' },
@@ -142,6 +143,32 @@ export default function KanbanPage() {
         }
     }
 
+    // Al eliminar un candidato del puesto
+    const handleRemoveCandidate = async (jobCandidateId: string) => {
+        await Swal.fire({
+            title: '¿Eliminar candidato?',
+            text: 'Esta acción solo eliminará al candidato de este puesto, no del sistema.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await removeCandidateFromJob(jobCandidateId)
+                    toast.success('Candidato eliminado correctamente')
+                    fetchData()
+                } catch (error) {
+                    console.error(error)
+                    toast.error('Error al eliminar el candidato')
+                }
+            }
+        })
+        
+    }
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full p-12">
@@ -199,6 +226,7 @@ export default function KanbanPage() {
                                         colorClass={col.color}
                                         candidates={colCandidates}
                                         jobId={jobId}
+                                        onRemoveCandidate={handleRemoveCandidate}
                                     />
                                 </SortableContext>
                             )
@@ -207,7 +235,12 @@ export default function KanbanPage() {
 
                     <DragOverlay>
                         {activeCard && (
-                            <KanbanCard jobCandidate={activeCard} jobId={jobId} isDragging />
+                            <KanbanCard
+                                jobCandidate={activeCard}
+                                jobId={jobId}
+                                isDragging
+                                onRemoveCandidate={handleRemoveCandidate}
+                            />
                         )}
                     </DragOverlay>
                 </DndContext>

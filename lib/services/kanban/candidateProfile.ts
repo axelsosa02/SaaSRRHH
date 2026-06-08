@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { WorkHistory, Education, Evaluation, Note, Document, Reference } from '@/types/database'
+import { Tag, CandidateTag } from '@/types/database'
 
 // ─── EXPERIENCIA ─────────────────────────────────────────────────────────────
 
@@ -216,22 +217,6 @@ export async function deleteReference(id: string) {
     const supabase = createClient()
     const { error } = await supabase.from('referencesjobs').delete().eq('id', id)
     if (error) throw error
-}
-
-// ─── ETIQUETAS ───────────────────────────────────────────────────────────────
-
-export interface Tag {
-    id: string
-    nombre: string
-    org_id: string
-    created_at: string
-}
-
-export interface CandidateTag {
-    id: string
-    candidate_id: string
-    tag_id: string
-    tag?: Tag
 }
 
 /** Obtiene todas las etiquetas de la organización */

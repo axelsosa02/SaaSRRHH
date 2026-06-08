@@ -1,5 +1,16 @@
 import { createClientServer } from '@/lib/supabase/server'
 
+export interface PlanUsage {
+    planName: string
+    planDisplayName: string
+    price: number
+    candidatos: { current: number; limit: number | null }
+    puestos: { current: number; limit: number | null }
+    usuarios: { current: number; limit: number | null }
+    hasCustomLanding: boolean
+    hasMassEmail: boolean
+}
+
 export interface DashboardMetrics {
     totalCandidatos: number
     candidatosEstaSemana: number
@@ -22,6 +33,7 @@ export interface DashboardMetrics {
         descripcion: string
         fecha: string
     }[]
+    planUsage: PlanUsage | null
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
@@ -56,6 +68,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
             ],
             ultimosPostulantes: [],
             actividadReciente: [],
+            planUsage: null,
         }
     }
 
@@ -189,6 +202,42 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     // Ordenar actividad por fecha
     actividad.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
 
+    // ── Plan usage ─────────────────────────────────────────────
+    let planUsage: PlanUsage | null = null
+    try {
+        const { data: orgWithPlan } = await supabase
+            .from('organizations')
+            .select('plan_id, plans(name, display_name, price, max_candidates, max_jobs, max_users, has_custom_landing, has_mass_email)')
+            .eq('id', orgId)
+            .single()
+
+        const plan = orgWithPlan?.plans as unknown as {
+            name: string; display_name: string; price: number;
+            max_candidates: number | null; max_jobs: number | null; max_users: number | null;
+            has_custom_landing: boolean; has_mass_email: boolean;
+        } | null
+
+        if (plan) {
+            const { count: userCount } = await supabase
+                .from('users')
+                .select('*', { count: 'exact', head: true })
+                .eq('org_id', orgId)
+
+            planUsage = {
+                planName: plan.name,
+                planDisplayName: plan.display_name,
+                price: plan.price,
+                candidatos: { current: totalCandidatos || 0, limit: plan.max_candidates },
+                puestos: { current: puestosActivos || 0, limit: plan.max_jobs },
+                usuarios: { current: userCount || 0, limit: plan.max_users },
+                hasCustomLanding: plan.has_custom_landing,
+                hasMassEmail: plan.has_mass_email,
+            }
+        }
+    } catch {
+        // Plan table might not exist yet — graceful fallback
+    }
+
     return {
         totalCandidatos: totalCandidatos || 0,
         candidatosEstaSemana: candidatosEstaSemana || 0,
@@ -199,5 +248,6 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         candidatosPorEstado,
         ultimosPostulantes: ultimosPostulantes || [],
         actividadReciente: actividad.slice(0, 4),
+        planUsage,
     }
 }

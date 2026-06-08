@@ -23,6 +23,8 @@ import { JobsFormProps } from '@/types/forms';
 import { createJob, updateJob } from '@/lib/services/puestos/jobs';
 import { getAreas } from '@/lib/services/areas/areas';
 import { Area } from '@/types/database';
+import { checkJobLimit } from '@/lib/services/plan-limits';
+import { createClient } from '@/lib/supabase/client';
 
 
 const jobSchema = z.object({
@@ -88,6 +90,30 @@ export function JobForm({ isOpen, onClose, job, onSuccess }: JobsFormProps) {
                 await updateJob(job.id, data)
                 toast.success('Puesto actualizado correctamente')
             } else {
+                // ── Plan limit check ──────────────────────────────
+                const supabase = createClient()
+                const { data: userData } = await supabase.auth.getUser()
+                if (!userData.user) throw new Error('No autenticado')
+
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('org_id')
+                    .eq('id', userData.user.id)
+                    .single()
+
+                if (profile?.org_id) {
+                    const check = await checkJobLimit(profile.org_id)
+                    if (!check.allowed) {
+                        toast.error(
+                            `Llegaste al límite de ${check.limit} puestos del plan ${check.planName}. Mejorá tu plan para crear más.`,
+                            { duration: 5000 }
+                        )
+                        setLoading(false)
+                        return
+                    }
+                }
+                // ──────────────────────────────────────────────────
+
                 await createJob(data)
                 toast.success('Puesto creado correctamente')
             }

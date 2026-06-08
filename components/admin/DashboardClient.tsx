@@ -1,8 +1,8 @@
 'use client'
 
-import { Users, Briefcase, UserCheck, Trophy, ArrowUpRight, Mail, UserPlus } from 'lucide-react'
+import { Users, Briefcase, UserCheck, Trophy, ArrowUpRight, Mail, UserPlus, Zap } from 'lucide-react'
 import Link from 'next/link'
-import type { DashboardMetrics } from '@/lib/services/dashboard'
+import type { DashboardMetrics, PlanUsage } from '@/lib/services/dashboard'
 
 interface Props {
     metrics: DashboardMetrics
@@ -44,6 +44,74 @@ const AVATAR_COLORS = [
     'bg-amber-100 text-amber-800',
     'bg-purple-100 text-purple-800',
 ]
+
+/* ── Plan Usage Bar ────────────────────────────────────────────── */
+function UsageBar({ label, current, limit }: { label: string; current: number; limit: number | null }) {
+    const isUnlimited = limit === null
+    const pct = isUnlimited ? 0 : Math.min(Math.round((current / limit) * 100), 100)
+    const isNearLimit = !isUnlimited && pct >= 80
+    const isAtLimit = !isUnlimited && pct >= 100
+
+    return (
+        <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">{label}</span>
+                <span className={`font-medium ${isAtLimit ? 'text-red-600' : isNearLimit ? 'text-amber-600' : ''}`}>
+                    {current}{isUnlimited ? '' : ` / ${limit}`}
+                    {isUnlimited && <span className="text-muted-foreground ml-1">∞</span>}
+                </span>
+            </div>
+            {!isUnlimited && (
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                        className={`h-full rounded-full transition-all ${
+                            isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-primary'
+                        }`}
+                        style={{ width: `${pct}%` }}
+                    />
+                </div>
+            )}
+        </div>
+    )
+}
+
+/* ── Plan Usage Card ───────────────────────────────────────────── */
+function PlanUsageCard({ plan }: { plan: PlanUsage }) {
+    const PLAN_COLORS: Record<string, string> = {
+        starter: 'bg-zinc-100 text-zinc-800',
+        pro: 'bg-amber-100 text-amber-800',
+        agency: 'bg-violet-100 text-violet-800',
+    }
+
+    return (
+        <div className="border rounded-xl p-5 bg-card">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-medium">Tu plan</h2>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_COLORS[plan.planName] || 'bg-muted'}`}>
+                        {plan.planDisplayName}
+                    </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                    USD ${plan.price}/mes
+                </span>
+            </div>
+
+            <div className="space-y-3">
+                <UsageBar label="Candidatos" current={plan.candidatos.current} limit={plan.candidatos.limit} />
+                <UsageBar label="Puestos activos" current={plan.puestos.current} limit={plan.puestos.limit} />
+                <UsageBar label="Usuarios" current={plan.usuarios.current} limit={plan.usuarios.limit} />
+            </div>
+
+            {plan.planName !== 'agency' && (
+                <button className="mt-4 w-full flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                    <Zap className="h-3.5 w-3.5" />
+                    Mejorar plan
+                </button>
+            )}
+        </div>
+    )
+}
 
 export function DashboardClient({ metrics }: Props) {
     const totalEstados = metrics.candidatosPorEstado.reduce((acc, e) => acc + e.total, 0)
@@ -184,6 +252,11 @@ export function DashboardClient({ metrics }: Props) {
 
                 {/* Columna derecha */}
                 <div className="flex flex-col gap-4">
+
+                    {/* Plan usage */}
+                    {metrics.planUsage && (
+                        <PlanUsageCard plan={metrics.planUsage} />
+                    )}
 
                     {/* Estado del proceso */}
                     <div className="border rounded-xl p-5 bg-card">

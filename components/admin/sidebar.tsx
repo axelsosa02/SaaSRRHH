@@ -29,10 +29,17 @@ type Props = {
     userEmail?: string
     userName?: string
     orgName?: string
+    planName?: string
 }
 
-export function AppSidebar({ userEmail, userName, orgName }: Props) {
+export function AppSidebar({ userEmail, userName, orgName, planName }: Props) {
     const pathname = usePathname()
+
+    const PLAN_BADGE: Record<string, string> = {
+        Starter: 'bg-zinc-100 text-zinc-700',
+        Pro: 'bg-amber-100 text-amber-800',
+        Agency: 'bg-violet-100 text-violet-800',
+    }
 
     const { user } = useAuth()
     const links = [
@@ -80,6 +87,11 @@ export function AppSidebar({ userEmail, userName, orgName }: Props) {
                 <div className="px-2 py-1">
                     <p className="text-xs text-muted-foreground">Organización</p>
                     <h2 className="text-lg font-bold">{orgName || 'Mi Empresa'}</h2>
+                    {planName && (
+                        <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${PLAN_BADGE[planName] || 'bg-muted text-muted-foreground'}`}>
+                            Plan {planName}
+                        </span>
+                    )}
                 </div>
             </SidebarHeader>
 

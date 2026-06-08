@@ -1,3 +1,5 @@
+import type { Plan } from './plan'
+
 export interface OrgConfig {
     id: string
     slug: string
@@ -15,4 +17,9 @@ export interface OrgConfig {
     // Mercado Pago OAuth (NUNCA exponer mp_access_token al frontend)
     mp_connected: boolean
     mp_user_id: string | null
+    // Plan
+    plan_id: string
+    plan_expires_at: string | null
+    plan?: Plan  // disponible cuando se hace join con plans
 }
+

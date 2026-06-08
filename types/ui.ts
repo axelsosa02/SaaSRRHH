@@ -33,4 +33,6 @@ export type Candidates = {
     cv_url?: string
     fechaPostulacion: string
     puesto: string
-}
+    tags: string[]
+
+}

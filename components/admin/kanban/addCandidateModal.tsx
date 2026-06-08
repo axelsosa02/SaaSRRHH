@@ -124,7 +124,7 @@ export function AddCandidateModal({ isOpen, onClose, jobId, onSuccess }: Props) 
                     >
                         Buscar Existente
                     </button>
-                    <button
+                    {/* <button
                         type="button"
                         className={`flex-1 pb-3 text-sm font-medium border-b-2 transition-all ${
                             activeTab === 'create'
@@ -134,11 +134,9 @@ export function AddCandidateModal({ isOpen, onClose, jobId, onSuccess }: Props) 
                         onClick={() => setActiveTab('create')}
                     >
                         Cargar Manual
-                    </button>
+                    </button> */}
                 </div>
-
-                {activeTab === 'search' ? (
-                    <div className="space-y-4 py-2">
+                <div className="space-y-4 py-2">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
@@ -198,98 +196,7 @@ export function AddCandidateModal({ isOpen, onClose, jobId, onSuccess }: Props) 
                                 Cerrar
                             </Button>
                         </DialogFooter>
-                    </div>
-                ) : (
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name="nombre"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nombre</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} placeholder="María" disabled={loading} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="apellido"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Apellido</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} placeholder="González" disabled={loading} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Correo electrónico</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} type="email" placeholder="maria@email.com" disabled={loading} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="telefono"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Teléfono <span className="text-muted-foreground">(opcional)</span></FormLabel>
-                                        <FormControl>
-                                            <Input {...field} placeholder="+54 341 555 1234" disabled={loading} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="resumen"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Descripción / Notas iniciales <span className="text-muted-foreground">(opcional)</span></FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                {...field}
-                                                placeholder="Perfil del candidato, cómo llegó al proceso..."
-                                                rows={3}
-                                                disabled={loading}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <DialogFooter>
-                                <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-                                    Cancelar
-                                </Button>
-                                <Button type="submit" disabled={loading}>
-                                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Agregar candidato
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </Form>
-                )}
+                        </div>
             </DialogContent>
         </Dialog>
     )

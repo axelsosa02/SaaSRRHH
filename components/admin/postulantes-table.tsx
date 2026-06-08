@@ -17,7 +17,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus, Upload, X } from "lucide-react"
+import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus, Upload, X, Tag } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -26,7 +26,7 @@ import * as z from "zod"
 import { toast } from "react-hot-toast"
 import { Loader2 } from "lucide-react"
 
-import type { Area, Availability, Experience, Job } from "@/types/database"
+import type { Area, Availability, Experience, Job, Tag as TagType } from "@/types/database"
 import type { Candidates } from "@/types/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -64,6 +64,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { createCandidate } from "@/lib/services/createCandidate"
 import { createClient } from "@/lib/supabase/client"
+import { checkCandidateLimit } from "@/lib/services/plan-limits"
 
 // ── Helpers de color por variante ──────────────────────────────────────────────
 
@@ -246,6 +247,40 @@ const columns: ColumnDef<Candidates>[] = [
             )
         },
     },
+    {
+        // Columna de Etiquetas
+        id: "tags",
+        accessorFn: (row) => row.tags,
+        header: "Etiquetas",
+        cell: ({ row }) => {
+            const tags = row.original.tags
+            if (!tags || tags.length === 0) {
+                return (
+                    <span className="text-xs text-muted-foreground italic">
+                        Sin etiquetas
+                    </span>
+                )
+            }
+            return (
+                <div className="flex flex-wrap gap-1">
+                    {tags.map((tag) => (
+                        <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="text-[11px] px-1.5 py-0 font-normal"
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
+            )
+        },
+        filterFn: (row, _columnId, value) => {
+            if (!value || value === "all") return true
+            const tags = row.original.tags ?? []
+            return tags.includes(value)
+        },
+    },
     // Columna para visualizar el CV del postulante (abre en nueva pestaña)
     {
         accessorKey: "cv_url",
@@ -299,11 +334,12 @@ interface PostulantesTableProps {
     availability: Availability[]
     orgId: string
     jobs: Job[]
+    tags: TagType[]
 }
 
 // ── Componente Principal ───────────────────────────────────────────────────────
 
-export function PostulantesTable({ data, areas, experience, availability, orgId, jobs }: PostulantesTableProps) {
+export function PostulantesTable({ data, areas, experience, availability, orgId, jobs, tags }: PostulantesTableProps) {
     const router = useRouter()
     const [sheetOpen, setSheetOpen] = useState(false)
     // Estado para el ordenamiento de las columnas
@@ -335,6 +371,9 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
         // Lógica personalizada para la búsqueda global
         globalFilterFn: (row, _columnId, value) => {
             const search = value.toLowerCase()
+            const tagsMatch = (row.original.tags ?? []).some((t) =>
+                t.toLowerCase().includes(search)
+            )
             return (
                 row.original.nombre.toLowerCase().includes(search) ||
                 row.original.apellido.toLowerCase().includes(search) ||
@@ -343,7 +382,8 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
                 row.original.localidad.toLowerCase().includes(search) ||
                 row.original.area.toLowerCase().includes(search) ||
                 row.original.experiencia.toLowerCase().includes(search) ||
-                row.original.disponibilidad.toLowerCase().includes(search)
+                row.original.disponibilidad.toLowerCase().includes(search) ||
+                tagsMatch
             )
         },
         state: { sorting, columnFilters, globalFilter },
@@ -378,6 +418,18 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
     const onSubmitCandidate = async (values: CandidateFormValues) => {
         setSubmitting(true)
         try {
+            // ── Plan limit check ──────────────────────────────
+            const candidateCheck = await checkCandidateLimit(orgId)
+            if (!candidateCheck.allowed) {
+                toast.error(
+                    `Llegaste al límite de ${candidateCheck.limit} candidatos del plan ${candidateCheck.planName}. Mejorá tu plan para agregar más.`,
+                    { duration: 5000 }
+                )
+                setSubmitting(false)
+                return
+            }
+            // ──────────────────────────────────────────────────
+
             let cvUrl: string | undefined
             if (selectedFile) {
                 const supabase = createClient()
@@ -455,12 +507,12 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
                 </Button>
 
                 <div className="flex-1 h-px sm:hidden" />
-                {/* Búsqueda Global: Filtra por nombre, email o puesto */}
+                {/* Búsqueda Global: Filtra por nombre, email, puesto o etiqueta */}
                 <div className="relative flex-1 min-w-[200px]">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
                     <Input
                         id="postulantes-search"
-                        placeholder="Buscar por nombre, email, puesto…"
+                        placeholder="Buscar por nombre, email, puesto, etiqueta…"
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
                         className="pl-8 h-8 text-sm"
@@ -527,6 +579,25 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
                         <SelectItem value="all">Todas las localidades</SelectItem>
                         {localidades.map((l) => (
                             <SelectItem key={l} value={l}>{l}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                {/* Filtro por Etiqueta */}
+                <Select
+                    value={getFilterValue("tags")}
+                    onValueChange={(v) => setFilterValue("tags", v)}
+                >
+                    <SelectTrigger id="filter-tags" className="h-8 w-[160px] text-sm">
+                        <div className="flex items-center gap-1.5">
+                            <Tag className="size-3.5" />
+                            <SelectValue placeholder="Etiqueta" />
+                        </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todas las etiquetas</SelectItem>
+                        {tags.map((t) => (
+                            <SelectItem key={t.id} value={t.nombre}>{t.nombre}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>

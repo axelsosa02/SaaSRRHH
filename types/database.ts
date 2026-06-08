@@ -166,3 +166,17 @@ export interface Payment {
     created_at: string
 }
 
+export interface Tag {
+    id: string
+    nombre: string
+    org_id: string
+    created_at: string
+}
+
+export interface CandidateTag {
+    id: string
+    candidate_id: string
+    tag_id: string
+    tag?: Tag
+}
+

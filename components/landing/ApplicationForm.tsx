@@ -27,6 +27,7 @@ import { toast } from 'react-hot-toast'
 import { createCandidate } from '@/lib/services/createCandidate'
 import { Loader2, Upload, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { checkCandidateLimit } from '@/lib/services/plan-limits'
 
 const formSchema = z.object({
     nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -126,6 +127,18 @@ export function ApplicationForm({
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
         try {
+            // ── Plan limit check ──────────────────────────────
+            const candidateCheck = await checkCandidateLimit(orgId)
+            if (!candidateCheck.allowed) {
+                toast.error(
+                    'Esta organización no puede recibir más postulaciones en este momento. Intentá más tarde.',
+                    { duration: 5000 }
+                )
+                setLoading(false)
+                return
+            }
+            // ──────────────────────────────────────────────────
+
             let cvUrl = values.cv_url
 
             if (selectedFile) {
