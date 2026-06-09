@@ -43,7 +43,7 @@ const plans: Plan[] = [
   },
   {
     name: "Agency",
-    price: 59.00,
+    price: 59.99,
     description: "Para consultoras grandes o agencias.",
     features: [
       "Candidatos ilimitados",

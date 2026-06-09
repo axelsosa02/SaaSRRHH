@@ -21,7 +21,7 @@ export default function Contacto() {
               <span className="text-[#b6f300]">gratis</span>
             </h2>
             <p className="mb-10 max-w-lg text-base leading-relaxed text-white/60 md:text-lg">
-              Agendá una llamada rápida con nuestro equipo y te mostramos cómo FlowATS puede simplificar tu proceso de selección. Sin compromiso, sin letra chica.
+              Agendá una llamada rápida con nuestro equipo y te mostramos cómo FlowATS puede simplificar tu proceso de selección. Sin compromiso.
             </p>
 
             {/* Contact info cards */}

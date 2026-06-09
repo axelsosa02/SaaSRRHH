@@ -11,9 +11,9 @@ interface FaqItem {
 
 const faqs: FaqItem[] = [
   {
-    question: "¿Necesito una tarjeta de crédito para empezar?",
+    question: "¿Cómo puedo probar la plataforma antes de decidir?",
     answer:
-      "No. Podés crear tu cuenta y empezar a usar FlowATS de forma gratuita, sin necesidad de ingresar datos de pago. Solo te pedimos tarjeta si decidís pasar a un plan pago.",
+      "Podés contactarte con nosotros y agendar una demo, o directamente elegir el plan starter y empezar a usar FlowATS sin necesidad de ingresar datos de pago.",
   },
   {
     question: "¿Puedo importar candidatos que ya tengo en planillas?",
@@ -23,7 +23,7 @@ const faqs: FaqItem[] = [
   {
     question: "¿Cuántos usuarios pueden usar la plataforma?",
     answer:
-      "Depende del plan que elijas. El plan gratuito incluye un usuario, y los planes pagos permiten agregar múltiples miembros de equipo con roles y permisos personalizados.",
+      "Depende del plan que elijas. El plan Starter incluye un usuario, y los planes Pro y Agency permiten agregar múltiples miembros de equipo con roles y permisos personalizados.",
   },
   {
     question: "¿Mis candidatos pueden postularse directamente?",
@@ -33,12 +33,12 @@ const faqs: FaqItem[] = [
   {
     question: "¿Es seguro? ¿Dónde se almacenan mis datos?",
     answer:
-      "Totalmente. Usamos infraestructura segura con encriptación de datos en tránsito y en reposo. Tus datos se almacenan en servidores con certificación SOC 2 y cumplimos con las normativas de protección de datos.",
+      "Sí. Tus datos se almacenan en servidores seguros y cumplimos con las normativas de protección de datos.",
   },
   {
     question: "¿Puedo cancelar en cualquier momento?",
     answer:
-      "Sí, sin compromisos ni penalidades. Podés cancelar tu suscripción en cualquier momento desde tu panel de configuración y seguirás teniendo acceso hasta el final del período facturado.",
+      "Sí, sin compromisos ni penalidades. Podés cancelar tu suscripción en cualquier momento contactándonos por WhatsApp o email.",
   },
 ];
 

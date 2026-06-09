@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Link, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -288,16 +288,18 @@ export function GlowyWavesHero() {
                         variants={itemVariants}
                         className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
                     >
-                        <Button
-                            size="lg"
-                            className="group gap-2 cursor-pointer rounded-xl px-8 py-6 bg-[#b6f300] text-black text-base uppercase tracking-[0.2em] hover:bg-[#c8ff00] transition-colors"
-                        >
-                            Empezar ahora
-                            <ArrowRight
-                                className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                                aria-hidden="true"
-                            />
-                        </Button>
+                          <a href="#contacto">
+                              <Button
+                                size="lg"
+                                className="group gap-2 cursor-pointer rounded-xl px-8 py-6 bg-[#b6f300] text-black text-base uppercase tracking-[0.2em] hover:bg-[#c8ff00] transition-colors"
+                            >
+                                Empezar ahora
+                                <ArrowRight
+                                    className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                                    aria-hidden="true"
+                                />
+                            </Button>
+                          </a>
                     </motion.div>
 
                     {/* Stats */}

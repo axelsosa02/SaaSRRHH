@@ -32,10 +32,16 @@ export default function Footer() {
               Inicio
             </Link>
             <Link
+              href="#precios"
+              className="text-sm text-white/40 transition-colors duration-200 hover:text-[#b6f300]"
+            >
+              Precios
+            </Link>
+            <Link
               href="#contacto"
               className="text-sm text-white/40 transition-colors duration-200 hover:text-[#b6f300]"
             >
-              Contacto
+              Demo gratis
             </Link>
           </div>
 
@@ -44,8 +50,8 @@ export default function Footer() {
             <h4 className="mb-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
               Contacto
             </h4>
-            <p className="text-sm text-white/40">axeldeveloperweb@gmail.com</p>
-            <a href="https://wa.me/5493482630224" target="_blank" rel="noopener noreferrer" className="text-sm text-white/40" >+5493482630224</a>
+            <a href="mailto:axeldeveloperweb@gmail.com" className="text-sm text-white/40 hover:text-[#b6f300]">axeldeveloperweb@gmail.com</a>
+            <a href="https://wa.me/5493482630224" target="_blank" rel="noopener noreferrer" className="text-sm text-white/40 hover:text-[#b6f300]" >+5493482630224</a>
           </div>
         </div>
 

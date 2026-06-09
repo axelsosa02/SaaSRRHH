@@ -17,13 +17,15 @@ export default function Navbar() {
     <section className="w-full mx-auto fixed py-4 md:py-8 top-0 z-50 px-4 md:px-0">
       <nav className="max-w-7xl flex justify-between items-center rounded-full px-5 md:px-6 py-3 md:py-4 mx-auto border border-[#b6f300] bg-[#0a0a0a]/60 backdrop-blur-xl">
         {/* Logo */}
-        <Image
-          src="/images/logoATS-v3.png"
-          alt="Logo"
-          width={90}
-          height={90}
-          className="md:w-[110px]"
-        />
+        <Link href="/">
+          <Image
+            src="/images/logoATS-v3.png"
+            alt="Logo"
+            width={90}
+            height={90}
+            className="md:w-[110px]"
+          />
+        </Link>
 
         {/* Desktop links */}
         <ul className="hidden md:flex gap-10 text-white">
@@ -32,29 +34,31 @@ export default function Navbar() {
               Inicio
             </li>
           </Link>
-          <Link href="#contacto">
-            <li className="transition-colors duration-200 hover:text-[#b6f300]">
-              Contacto
-            </li>
-          </Link>
           <Link href="#precios">
             <li className="transition-colors duration-200 hover:text-[#b6f300]">
               Precios
             </li>
           </Link>
+          <Link href="#contacto">
+            <li className="transition-colors duration-200 hover:text-[#b6f300]">
+              Demo gratis
+            </li>
+          </Link>
         </ul>
 
         {/* Desktop CTA */}
-        <Button
-          variant="flowATS"
-          className="hidden md:flex group items-center"
-        >
-          Comenzar
-          <ArrowRight
-            className="h-4 w-4 transition-transform group-hover:translate-x-1"
-            aria-hidden="true"
-          />
-        </Button>
+        <Link href="#contacto">
+          <Button
+            variant="flowATS"
+            className="hidden md:flex group items-center"
+          >
+            Comenzar
+            <ArrowRight
+              className="h-4 w-4 transition-transform group-hover:translate-x-1"
+              aria-hidden="true"
+            />
+          </Button>
+        </Link>
 
         {/* Mobile hamburger */}
         <button
@@ -82,23 +86,29 @@ export default function Navbar() {
                   Inicio
                 </li>
               </Link>
+              <Link href="#precios" onClick={closeMenu}>
+                <li className="rounded-xl px-4 py-3 text-lg font-medium transition-all duration-200 hover:bg-[#b6f300]/10 hover:text-[#b6f300]">
+                  Precios
+                </li>
+              </Link>
               <Link href="#contacto" onClick={closeMenu}>
                 <li className="rounded-xl px-4 py-3 text-lg font-medium transition-all duration-200 hover:bg-[#b6f300]/10 hover:text-[#b6f300]">
-                  Contacto
+                  Demo gratis
                 </li>
               </Link>
             </ul>
-            <Button
-              variant="flowATS"
-              className="group flex w-full items-center justify-center"
-              onClick={closeMenu}
-            >
-              Comenzar
-              <ArrowRight
-                className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                aria-hidden="true"
-              />
-            </Button>
+            <Link href="#contacto" onClick={closeMenu}>
+              <Button
+                variant="flowATS"
+                className="group flex w-full items-center justify-center"
+              >
+                Comenzar
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </Button>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
