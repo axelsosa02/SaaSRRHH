@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import Image from "next/image";
 
@@ -71,7 +73,7 @@ export default function Funcionalidades() {
   return (
     <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 md:py-32">
       {/* Background glows */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 hidden md:block">
         <div className="absolute top-[15%] right-0 h-[400px] w-[500px] rounded-full bg-[#b6f300]/[0.025] blur-[160px]" />
         <div className="absolute top-[55%] left-0 h-[400px] w-[500px] rounded-full bg-[#b6f300]/[0.02] blur-[140px]" />
         <div className="absolute bottom-[10%] right-[20%] h-[350px] w-[350px] rounded-full bg-[#b6f300]/[0.015] blur-[120px]" />
@@ -87,7 +89,7 @@ export default function Funcionalidades() {
                 key={feature.title}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, margin: "-80px" }}
+                viewport={{ once: true, margin: "0px" }}
                 className={`flex flex-col items-center gap-10 md:gap-14 lg:gap-20 ${
                   isEven ? "md:flex-row" : "md:flex-row-reverse"
                 }`}

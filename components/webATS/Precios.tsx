@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -81,7 +83,7 @@ export default function Precios() {
       className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 md:py-32"
     >
       {/* Background glows */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 hidden md:block">
         <div className="absolute top-1/2 left-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#b6f300]/[0.025] blur-[200px]" />
         <div className="absolute top-0 right-0 h-[300px] w-[400px] rounded-full bg-[#b6f300]/[0.02] blur-[120px]" />
       </div>
@@ -91,7 +93,7 @@ export default function Precios() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
+          viewport={{ once: true, margin: "0px" }}
           transition={{ duration: 0.7, ease: "easeOut" as const }}
           className="mb-14 text-center md:mb-20"
         >
@@ -110,7 +112,7 @@ export default function Precios() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, margin: "0px" }}
           className="grid gap-6 md:grid-cols-3 md:gap-5 lg:gap-8"
         >
           {plans.map((plan) => (

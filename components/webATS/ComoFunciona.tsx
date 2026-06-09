@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 
 interface Step {
@@ -68,7 +70,7 @@ export default function ComoFunciona() {
         <section className="relative flex flex-col gap-16 w-full text-center overflow-hidden bg-[#0a0a0a] py-20 md:py-28 md:gap-24">
 
             {/* Fondo — blur reducido en móvil */}
-            <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden="true">
                 <div className="absolute top-1/2 left-1/2 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#b6f300]/[0.03] blur-[80px] md:blur-[180px]" />
                 <div className="absolute top-0 left-0 h-[300px] w-[400px] rounded-full bg-[#b6f300]/[0.02] blur-[50px] md:blur-[120px]" />
                 <div className="absolute bottom-0 right-0 h-[300px] w-[400px] rounded-full bg-[#b6f300]/[0.02] blur-[50px] md:blur-[120px]" />
@@ -78,7 +80,7 @@ export default function ComoFunciona() {
             <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
+                viewport={{ once: true, margin: "0px" }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
             >
                 <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-white">
@@ -91,7 +93,7 @@ export default function ComoFunciona() {
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
+                viewport={{ once: true, margin: "0px" }}
                 className="relative z-10 mx-auto w-full max-w-6xl px-6 md:px-8"
             >
                 {/* Desktop — horizontal */}

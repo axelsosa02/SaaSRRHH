@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 
 interface Step {
@@ -54,7 +56,7 @@ export default function UsarFlowATS() {
   return (
     <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 md:py-28">
       {/* Glow effects */}
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pointer-events-none absolute inset-0 hidden md:block">
         <div className="absolute -bottom-32 left-1/2 h-[500px] w-[700px] -translate-x-1/2 rounded-full bg-[#b6f300]/4 blur-[160px]" />
         <div className="absolute -top-20 right-0 h-[350px] w-[350px] rounded-full bg-[#b6f300]/3 blur-[120px]" />
       </div>
@@ -64,7 +66,7 @@ export default function UsarFlowATS() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
+          viewport={{ once: true, margin: "0px" }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="mb-16 md:mb-20"
         >
@@ -79,7 +81,7 @@ export default function UsarFlowATS() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, margin: "0px" }}
           className="flex flex-col gap-10 md:gap-12"
         >
           {steps.map((step) => (
