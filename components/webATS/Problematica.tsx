@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   MessageSquareWarning,
   FolderSearch,
@@ -106,25 +105,15 @@ export default function Problematica() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8">
         {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="mb-14 text-center md:mb-20"
-        >
+        <div className="mb-14 text-center md:mb-20">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
             ¿Estás{" "}
             <span className="italic text-[#b6f300]">luchando</span> con?
           </h2>
-        </motion.div>
+        </div>
 
         {/* Carousel */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+        <div
           className="relative"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
@@ -165,21 +154,15 @@ export default function Problematica() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Bottom message */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mx-auto mt-16 max-w-3xl text-center text-base leading-relaxed text-white/70 md:mt-20 md:text-lg"
-        >
+        <p className="mx-auto mt-16 max-w-3xl text-center text-base leading-relaxed text-white/70 md:mt-20 md:text-lg">
           Miles de consultoras y equipos de RRHH enfrentan estos problemas todos
           los días.{" "}
           <span className="font-semibold italic text-[#b6f300]">FlowATS</span>{" "}
           fue diseñado para resolverlos desde un único lugar.
-        </motion.p>
+        </p>
       </div>
     </section>
   );

@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 interface Feature {
@@ -41,34 +38,6 @@ const features: Feature[] = [
   },
 ];
 
-const textVariants = {
-  hidden: { opacity: 0, x: -40 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.7, ease: "easeOut" as const },
-  },
-};
-
-const textVariantsRight = {
-  hidden: { opacity: 0, x: 40 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.7, ease: "easeOut" as const },
-  },
-};
-
-const imageVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.8, ease: "easeOut" as const, delay: 0.15 },
-  },
-};
-
 export default function Funcionalidades() {
   return (
     <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 md:py-32">
@@ -85,20 +54,14 @@ export default function Funcionalidades() {
             const isEven = index % 2 === 0;
 
             return (
-              <motion.div
+              <div
                 key={feature.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "0px" }}
                 className={`flex flex-col items-center gap-10 md:gap-14 lg:gap-20 ${
                   isEven ? "md:flex-row" : "md:flex-row-reverse"
                 }`}
               >
                 {/* Text block */}
-                <motion.div
-                  variants={isEven ? textVariants : textVariantsRight}
-                  className="flex flex-col md:w-[45%]"
-                >
+                <div className="flex flex-col md:w-[45%]">
                   <h3 className="mb-4 text-3xl font-bold leading-tight text-[#b6f300] md:text-4xl lg:text-5xl">
                     {feature.title}
                   </h3>
@@ -106,14 +69,11 @@ export default function Funcionalidades() {
                     {feature.description}
                   </p>
                   {/* Accent line */}
-                  <div className="mt-6 h-[2px] w-16 bg-[#b6f300]/30" />
-                </motion.div>
+                  <div className="mt-6 h-[2px] w-16 bg-[#b6f300]/30 transition-all duration-300 hover:w-24 hover:bg-[#b6f300]/60" />
+                </div>
 
                 {/* Image block */}
-                <motion.div
-                  variants={imageVariants}
-                  className="group relative md:w-[55%]"
-                >
+                <div className="group relative md:w-[55%] transition-transform duration-500 hover:scale-[1.02]">
                   {/* Glow behind image */}
                   <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-[#b6f300]/[0.04] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100" />
 
@@ -128,8 +88,8 @@ export default function Funcionalidades() {
                     {/* Subtle gradient overlay at top for blending */}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/30 via-transparent to-transparent" />
                   </div>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             );
           })}
         </div>

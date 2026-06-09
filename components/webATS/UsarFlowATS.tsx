@@ -1,7 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 interface Step {
   number: string;
   title: string;
@@ -35,23 +31,6 @@ const steps: Step[] = [
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
-  },
-} as const;
-
-const stepVariants = {
-  hidden: { opacity: 0, x: -30 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.6, ease: "easeOut" as const },
-  },
-};
-
 export default function UsarFlowATS() {
   return (
     <section className="relative w-full overflow-hidden bg-[#0a0a0a] py-20 md:py-28">
@@ -63,35 +42,22 @@ export default function UsarFlowATS() {
 
       <div className="relative z-10 mx-auto max-w-5xl px-6 md:px-8">
         {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="mb-16 md:mb-20"
-        >
+        <div className="mb-16 md:mb-20">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
             ¿Por qué usar Flow
             <span className="text-[#b6f300]">ATS</span>?
           </h2>
-        </motion.div>
+        </div>
 
         {/* Steps */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "0px" }}
-          className="flex flex-col gap-10 md:gap-12"
-        >
+        <div className="flex flex-col gap-10 md:gap-12">
           {steps.map((step) => (
-            <motion.div
+            <div
               key={step.number}
-              variants={stepVariants}
-              className="group flex items-start gap-6 md:gap-10"
+              className="group flex items-start gap-6 md:gap-10 transition-transform duration-300 hover:-translate-y-1"
             >
               {/* Number */}
-              <span className="shrink-0 select-none text-5xl font-bold leading-none text-white/15 transition-colors duration-300 group-hover:text-white/25 md:text-7xl">
+              <span className="shrink-0 select-none text-5xl font-bold leading-none text-white/15 transition-colors duration-300 group-hover:text-[#b6f300]/30 md:text-7xl">
                 {step.number}
               </span>
 
@@ -106,9 +72,9 @@ export default function UsarFlowATS() {
                 {/* Accent underline */}
                 <div className="mt-5 h-[2px] w-24 bg-[#b6f300]/40 transition-all duration-500 group-hover:w-full group-hover:bg-[#b6f300]/70" />
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

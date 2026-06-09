@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -59,23 +56,6 @@ const plans: Plan[] = [
   },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 },
-  },
-} as const;
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" as const },
-  },
-};
-
 export default function Precios() {
   return (
     <section
@@ -90,13 +70,7 @@ export default function Precios() {
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 md:px-8">
         {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.7, ease: "easeOut" as const }}
-          className="mb-14 text-center md:mb-20"
-        >
+        <div className="mb-14 text-center md:mb-20">
           <h2 className="text-3xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
             Planes{" "}
             <span className="text-[#b6f300]">simples</span>, sin sorpresas
@@ -105,21 +79,14 @@ export default function Precios() {
             Elegí el plan que se adapte a tu equipo. Podés cambiar o cancelar en
             cualquier momento.
           </p>
-        </motion.div>
+        </div>
 
         {/* Cards */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "0px" }}
-          className="grid gap-6 md:grid-cols-3 md:gap-5 lg:gap-8"
-        >
+        <div className="grid gap-6 md:grid-cols-3 md:gap-5 lg:gap-8">
           {plans.map((plan) => (
-            <motion.div
+            <div
               key={plan.name}
-              variants={cardVariants}
-              className={`group relative flex flex-col rounded-2xl border p-6 transition-all duration-300 md:p-8 ${
+              className={`group relative flex flex-col rounded-2xl border p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl md:p-8 ${
                 plan.highlighted
                   ? "border-[#b6f300]/50 bg-[#b6f300]/[0.04] hover:border-[#b6f300] hover:bg-[#b6f300]/[0.07]"
                   : "border-white/[0.08] bg-white/[0.03] hover:border-[#b6f300]/30 hover:bg-white/[0.05]"
@@ -198,21 +165,15 @@ export default function Precios() {
                   </button>
                 )}
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Bottom note */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-10 text-center text-sm text-white/30"
-        >
+        <p className="mt-10 text-center text-sm text-white/30">
           Todos los planes incluyen 14 días de prueba gratis. Sin tarjeta de
           crédito.
-        </motion.p>
+        </p>
       </div>
     </section>
   );
