@@ -263,7 +263,7 @@ export function GlowyWavesHero() {
                     {/* Título */}
                     <motion.h1
                         variants={itemVariants}
-                        className="mb-6 text-4xl font-semibold tracking-tight text-white md:text-6xl lg:text-7xl"
+                        className="mb-6 text-3xl font-semibold tracking-tight text-white md:text-6xl lg:text-7xl"
                     >
                         Contratá{" "}
                         <span className="text-[#b6f300]">mejor</span>
