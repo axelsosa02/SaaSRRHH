@@ -151,18 +151,30 @@ export default function Precios() {
               {/* CTA */}
               <div className="relative">
                 {plan.highlighted ? (
-                  <Button
-                    variant="flowATS"
-                    className="group/btn flex w-full items-center justify-center gap-2"
+                  <a
+                    href={`https://wa.me/5493482630224?text=Hola,%20me%20interesa%20el%20plan%20${plan.name}%20de%20FlowATS.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full"
                   >
-                    Comenzar ahora
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
-                  </Button>
+                    <Button
+                      variant="flowATS"
+                      className="group/btn flex w-full items-center justify-center gap-2"
+                    >
+                      Comenzar ahora
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                    </Button>
+                  </a>
                 ) : (
-                  <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-[#b6f300]/40 hover:bg-white/[0.08]">
+                  <a
+                    href={`https://wa.me/5493482630224?text=Hola,%20me%20interesa%20el%20plan%20${plan.name}%20de%20FlowATS.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:border-[#b6f300]/40 hover:bg-white/[0.08]"
+                  >
                     Elegir plan
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </button>
+                  </a>
                 )}
               </div>
             </div>
