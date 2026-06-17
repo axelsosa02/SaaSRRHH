@@ -79,7 +79,7 @@ const SignInForm = ({ setTypeSelected }: AuthFormProps) => {
                 <div className="text-center">
                     <h1 className="lg:text-5xl md:text-4xl text-3xl font-semibold text-center my-4">Iniciar Sesión</h1>
                     <p className="text-sm text-muted-foreground mb-8">
-                        Talento RH
+                        Flow <span className="text-[#B6F300]">ATS</span>
                     </p>
                 </div>
 

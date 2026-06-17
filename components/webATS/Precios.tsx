@@ -13,7 +13,7 @@ interface Plan {
 const plans: Plan[] = [
   {
     name: "Starter",
-    price: 24.99,
+    price: 19.99,
     description: "Para consultoras que están arrancando.",
     features: [
       "Hasta 100 candidatos activos",
@@ -27,7 +27,7 @@ const plans: Plan[] = [
   },
   {
     name: "Pro",
-    price: 44.99,
+    price: 29.99,
     description: "Para consultoras en crecimiento.",
     highlighted: true,
     badge: "Más popular",
@@ -43,7 +43,7 @@ const plans: Plan[] = [
   },
   {
     name: "Agency",
-    price: 59.99,
+    price: 54.99,
     description: "Para consultoras grandes o agencias.",
     features: [
       "Candidatos ilimitados",
