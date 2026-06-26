@@ -17,7 +17,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus, Upload, X, Tag } from "lucide-react"
+import { ArrowUpDown, ChevronDown, ChevronUp, FileText, Search, UserPlus, Upload, X, Tag, Edit } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -62,7 +62,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
-import { createCandidate } from "@/lib/services/createCandidate"
+import { createCandidate, updateCandidate } from "@/lib/services/createCandidate"
 import { createClient } from "@/lib/supabase/client"
 import { checkCandidateLimit } from "@/lib/services/plan-limits"
 
@@ -281,29 +281,41 @@ const columns: ColumnDef<Candidates>[] = [
             return tags.includes(value)
         },
     },
-    // Columna para visualizar el CV del postulante (abre en nueva pestaña)
+    // Columna para acciones (CV y editar)
     {
-        accessorKey: "cv_url",
-        header: "CV",
-        cell: ({ row }) => {
+        id: "acciones",
+        header: "Acciones",
+        cell: ({ row, table }) => {
             const url = row.original.cv_url
-            if (!url) {
-                return (
-                    <span className="text-xs text-muted-foreground italic">
-                        Sin CV
-                    </span>
-                )
-            }
+            const { onEdit } = table.options.meta as { onEdit: (c: Candidates) => void }
             return (
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5 cursor-pointer"
-                    onClick={() => window.open(url, "_blank")}
-                >
-                    <FileText className="size-4" />
-                    Ver CV
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        onClick={() => onEdit(row.original)}
+                        title="Editar candidato"
+                    >
+                        <Edit className="size-4" />
+                    </Button>
+                    
+                    {url ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5 cursor-pointer"
+                            onClick={() => window.open(url, "_blank")}
+                        >
+                            <FileText className="size-4" />
+                            Ver CV
+                        </Button>
+                    ) : (
+                        <span className="text-xs text-muted-foreground italic px-2">
+                            Sin CV
+                        </span>
+                    )}
+                </div>
             )
         },
     },
@@ -323,6 +335,7 @@ const candidateFormSchema = z.object({
     experiencia: z.string().min(1, 'Requerido'),
     jobId: z.string().optional(),
     resumen: z.string().optional(),
+    tags: z.array(z.string()).optional(),
 })
 
 type CandidateFormValues = z.infer<typeof candidateFormSchema>
@@ -357,6 +370,27 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
         [data]
     )
 
+    const [editingCandidate, setEditingCandidate] = useState<Candidates | null>(null)
+
+    const handleEditClick = (candidato: Candidates) => {
+        setEditingCandidate(candidato)
+        candidateForm.reset({
+            nombre: candidato.nombre,
+            apellido: candidato.apellido,
+            email: candidato.email,
+            telefono: candidato.telefono || '',
+            area: candidato.area || '',
+            localidad: candidato.localidad || '',
+            provincia: candidato.provincia || '',
+            disponibilidad: availability.find(a => a.nombre === candidato.disponibilidad)?.id || '',
+            experiencia: experience.find(e => e.description === candidato.experiencia)?.id || '',
+            resumen: candidato.resumen || '',
+            jobId: 'general',
+            tags: candidato.tags || [],
+        })
+        setSheetOpen(true)
+    }
+
     // Configuración central de la tabla con TanStack Table
     const table = useReactTable({
         data,
@@ -388,11 +422,15 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
         },
         state: { sorting, columnFilters, globalFilter },
         initialState: { pagination: { pageSize: 10 } },
+        meta: {
+            onEdit: handleEditClick
+        }
     })
 
     // ── Formulario de nuevo candidato ──────────────────────────────────────────
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [submitting, setSubmitting] = useState(false)
+    const [tagInput, setTagInput] = useState("")
 
     const candidateForm = useForm<CandidateFormValues>({
         resolver: zodResolver(candidateFormSchema),
@@ -400,6 +438,7 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
             nombre: '', apellido: '', email: '', telefono: '',
             area: '', localidad: '', provincia: '',
             disponibilidad: '', experiencia: '', jobId: 'general', resumen: '',
+            tags: [],
         },
     })
 
@@ -418,19 +457,21 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
     const onSubmitCandidate = async (values: CandidateFormValues) => {
         setSubmitting(true)
         try {
-            // ── Plan limit check ──────────────────────────────
-            const candidateCheck = await checkCandidateLimit(orgId)
-            if (!candidateCheck.allowed) {
-                toast.error(
-                    `Llegaste al límite de ${candidateCheck.limit} candidatos del plan ${candidateCheck.planName}. Mejorá tu plan para agregar más.`,
-                    { duration: 5000 }
-                )
-                setSubmitting(false)
-                return
+            if (!editingCandidate) {
+                // ── Plan limit check solo para creación ──────────────────────────────
+                const candidateCheck = await checkCandidateLimit(orgId)
+                if (!candidateCheck.allowed) {
+                    toast.error(
+                        `Llegaste al límite de ${candidateCheck.limit} candidatos del plan ${candidateCheck.planName}. Mejorá tu plan para agregar más.`,
+                        { duration: 5000 }
+                    )
+                    setSubmitting(false)
+                    return
+                }
             }
             // ──────────────────────────────────────────────────
 
-            let cvUrl: string | undefined
+            let cvUrl: string | undefined = editingCandidate?.cv_url || undefined
             if (selectedFile) {
                 const supabase = createClient()
                 const ext = selectedFile.name.split('.').pop()
@@ -441,28 +482,51 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
                 cvUrl = urlData.publicUrl
             }
             const jobId = values.jobId === 'general' ? undefined : values.jobId
-            await createCandidate({
-                org_id: orgId,
-                nombre: values.nombre,
-                apellido: values.apellido,
-                email: values.email,
-                telefono: values.telefono,
-                area: values.area,
-                localidad: values.localidad,
-                provincia: values.provincia,
-                disponibilidad: values.disponibilidad,
-                experiencia: values.experiencia,
-                resumen: values.resumen,
-                cv_url: cvUrl,
-            }, jobId)
-            toast.success('Candidato agregado correctamente')
+            
+            if (editingCandidate) {
+                await updateCandidate(editingCandidate.id, {
+                    org_id: orgId,
+                    nombre: values.nombre,
+                    apellido: values.apellido,
+                    email: values.email,
+                    telefono: values.telefono,
+                    area: values.area,
+                    localidad: values.localidad,
+                    provincia: values.provincia,
+                    disponibilidad: values.disponibilidad,
+                    experiencia: values.experiencia,
+                    resumen: values.resumen,
+                    cv_url: cvUrl,
+                    tags: values.tags,
+                })
+                toast.success('Candidato actualizado correctamente')
+            } else {
+                await createCandidate({
+                    org_id: orgId,
+                    nombre: values.nombre,
+                    apellido: values.apellido,
+                    email: values.email,
+                    telefono: values.telefono,
+                    area: values.area,
+                    localidad: values.localidad,
+                    provincia: values.provincia,
+                    disponibilidad: values.disponibilidad,
+                    experiencia: values.experiencia,
+                    resumen: values.resumen,
+                    cv_url: cvUrl,
+                    tags: values.tags,
+                }, jobId)
+                toast.success('Candidato agregado correctamente')
+            }
+            
             candidateForm.reset()
+            setEditingCandidate(null)
             setSelectedFile(null)
             setSheetOpen(false)
             router.refresh()
         } catch (err) {
             console.error(err)
-            toast.error('Error al crear el candidato')
+            toast.error(editingCandidate ? 'Error al actualizar el candidato' : 'Error al crear el candidato')
         } finally {
             setSubmitting(false)
         }
@@ -694,13 +758,24 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
             </div>
         </div>
 
-        {/* ── SHEET: Formulario de nuevo candidato ── */}
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        {/* ── SHEET: Formulario de candidato ── */}
+        <Sheet open={sheetOpen} onOpenChange={(open) => {
+            setSheetOpen(open)
+            if (!open) {
+                setEditingCandidate(null)
+                candidateForm.reset({
+                    nombre: '', apellido: '', email: '', telefono: '',
+                    area: '', localidad: '', provincia: '',
+                    disponibilidad: '', experiencia: '', jobId: 'general', resumen: '',
+                    tags: [],
+                })
+            }
+        }}>
             <SheetContent className="w-full p-2 sm:max-w-xl data-[side=right]:sm:max-w-xl overflow-y-auto">
                 <SheetHeader className="">
-                    <SheetTitle>Agregar candidato</SheetTitle>
+                    <SheetTitle>{editingCandidate ? 'Editar candidato' : 'Agregar candidato'}</SheetTitle>
                     <SheetDescription>
-                        Completá los datos del candidato. No se requerirá pago ni se enviará email automático.
+                        {editingCandidate ? 'Modifica los datos del candidato.' : 'Completá los datos del candidato. No se requerirá pago ni se enviará email automático.'}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -785,6 +860,83 @@ export function PostulantesTable({ data, areas, experience, availability, orgId,
                                         {jobs.map(job => <SelectItem key={job.id} value={job.id}>{job.titulo}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+
+                        <FormField control={candidateForm.control} name="tags" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Etiquetas <span className="text-muted-foreground">(opcional)</span></FormLabel>
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    if (tagInput.trim() !== '') {
+                                                        const current = field.value || []
+                                                        if (!current.includes(tagInput.trim())) {
+                                                            field.onChange([...current, tagInput.trim()])
+                                                        }
+                                                        setTagInput("")
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Escribe y presiona Enter para agregar"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                if (tagInput.trim() !== '') {
+                                                    const current = field.value || []
+                                                    if (!current.includes(tagInput.trim())) {
+                                                        field.onChange([...current, tagInput.trim()])
+                                                    }
+                                                    setTagInput("")
+                                                }
+                                            }}
+                                        >
+                                            Agregar
+                                        </Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(field.value || []).map((tName) => (
+                                            <Badge
+                                                key={tName}
+                                                variant="default"
+                                                className="w-auto cursor-pointer gap-1"
+                                                onClick={() => {
+                                                    field.onChange((field.value || []).filter((n) => n !== tName))
+                                                }}
+                                            >
+                                                {tName} <X className="size-3" />
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    {tags.length > 0 && tags.filter(t => !(field.value || []).includes(t.nombre)).length > 0 && (
+                                        <div className="mt-2 space-y-2">
+                                            <p className="text-xs text-muted-foreground">O selecciona una existente:</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {tags.filter(t => !(field.value || []).includes(t.nombre)).map((t) => (
+                                                    <Badge
+                                                        key={t.id}
+                                                        variant="outline"
+                                                        className="w-auto cursor-pointer"
+                                                        onClick={() => {
+                                                            const current = field.value || []
+                                                            field.onChange([...current, t.nombre])
+                                                        }}
+                                                    >
+                                                        {t.nombre}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )} />

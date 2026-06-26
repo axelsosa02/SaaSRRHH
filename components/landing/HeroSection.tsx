@@ -10,7 +10,13 @@ interface HeroSectionProps {
 
 export function HeroSection({ content, slug, colorBrand }: HeroSectionProps) {
     return (
-        <section className="relative h-[80dvh] w-full py-24 lg:py-36 overflow-hidden bg-white">
+        <section
+            className="relative h-[80dvh] w-full py-24 lg:py-36 overflow-hidden"
+            style={{
+                backgroundColor: content.bg_color || '#ffffff',
+                color: content.text_color || '#472825',
+            }}
+        >
             <div className="container max-w-7xl mx-auto px-6 flex flex-col w-full items-center justify-center relative z-10">
                 <div className="max-w-5xl space-y-8 text-center">
                     <h2 className="text-center text- uppercase tracking-wider text-[#c1a280] font-bold border border-[#c1a280]/30 bg-[#c1a280]/5 py-2 px-6 rounded-full inline-block">
@@ -51,7 +57,7 @@ export function HeroSection({ content, slug, colorBrand }: HeroSectionProps) {
             </div>
 
             {content.background_image && (
-                <div className="absolute inset-0 z-0 opacity-[0.05] pointer-events-none">
+                <div className="absolute inset-0 z-0 pointer-events-none">
                     <img
                         src={content.background_image}
                         alt="Background"

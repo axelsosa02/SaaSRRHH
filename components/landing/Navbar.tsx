@@ -3,15 +3,30 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+// Ítems disponibles para la navbar
+export const ALL_NAV_ITEMS = [
+    { id: 'inicio', label: 'Inicio', href: (slug: string) => `/${slug}` },
+    { id: 'quienes_somos', label: 'Quiénes Somos', href: (slug: string) => `/${slug}#quienes-somos` },
+    { id: 'servicios', label: 'Servicios', href: (slug: string) => `/${slug}#servicios` },
+    { id: 'vacantes', label: 'Vacantes', href: (slug: string) => `/${slug}#vacantes` },
+    { id: 'contacto', label: 'Contacto', href: (slug: string) => `/${slug}#contacto` },
+] as const
+
 interface NavbarProps {
     logoUrl?: string | null
     nombre: string
     slug: string
     colorBrand: string
+    navItems?: string[] | null
 }
 
-export function Navbar({ logoUrl, nombre, slug, colorBrand }: NavbarProps) {
+export function Navbar({ logoUrl, nombre, slug, colorBrand, navItems }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false)
+
+    // Si navItems está configurado, filtramos los ítems por esos IDs; si no, mostramos todos.
+    const visibleItems = navItems && navItems.length > 0
+        ? ALL_NAV_ITEMS.filter(item => navItems.includes(item.id))
+        : ALL_NAV_ITEMS
 
     return (
         <header className="sticky top-0 z-50 w-full flex justify-center p-4 bg-transparent">
@@ -30,21 +45,15 @@ export function Navbar({ logoUrl, nombre, slug, colorBrand }: NavbarProps) {
 
                 {/* Menú Desktop */}
                 <div className="hidden md:flex items-center justify-center gap-6 flex-1">
-                    <Link href={`/${slug}`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
-                        Inicio
-                    </Link>
-                    <Link href={`/${slug}#quienes-somos`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
-                        Quiénes Somos
-                    </Link>
-                    <Link href={`/${slug}#servicios`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
-                        Servicios
-                    </Link>
-                    <Link href={`/${slug}#vacantes`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
-                        Vacantes
-                    </Link>
-                    <Link href={`/${slug}#contacto`} className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105">
-                        Contacto
-                    </Link>
+                    {visibleItems.map(item => (
+                        <Link
+                            key={item.id}
+                            href={item.href(slug)}
+                            className="text-[#472825]/90 hover:text-[#c1a280] font-semibold text-base transition-all hover:scale-105"
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
                 </div>
 
                 {/* Botón Acción Principal (Desktop) & Trigger Móvil */}
@@ -81,21 +90,16 @@ export function Navbar({ logoUrl, nombre, slug, colorBrand }: NavbarProps) {
                 {/* Menú desplegable Móvil */}
                 {isOpen && (
                     <div className="absolute top-16 left-0 right-0 z-50 p-6 bg-white/95 backdrop-blur-md border border-[#c1a280]/20 rounded-3xl shadow-xl flex flex-col gap-5 items-center md:hidden transition-all duration-300 animate-in fade-in slide-in-from-top-4">
-                        <Link href={`/${slug}`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
-                            Inicio
-                        </Link>
-                        <Link href={`/${slug}#quienes-somos`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
-                            Quiénes Somos
-                        </Link>
-                        <Link href={`/${slug}#servicios`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
-                            Servicios
-                        </Link>
-                        <Link href={`/${slug}#vacantes`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
-                            Vacantes
-                        </Link>
-                        <Link href={`/${slug}#contacto`} onClick={() => setIsOpen(false)} className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2">
-                            Contacto
-                        </Link>
+                        {visibleItems.map(item => (
+                            <Link
+                                key={item.id}
+                                href={item.href(slug)}
+                                onClick={() => setIsOpen(false)}
+                                className="text-[#472825] hover:text-[#c1a280] font-bold text-base transition-colors w-full text-center py-2"
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
                         <Link
                             href={`/${slug}/postularse`}
                             onClick={() => setIsOpen(false)}
@@ -110,4 +114,3 @@ export function Navbar({ logoUrl, nombre, slug, colorBrand }: NavbarProps) {
         </header>
     )
 }
-

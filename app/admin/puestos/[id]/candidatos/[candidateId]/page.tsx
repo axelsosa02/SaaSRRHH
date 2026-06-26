@@ -76,6 +76,22 @@ export default function CandidateProfilePage() {
             await moveCandidate(jobCandidate.id, nuevoEstado, jobCandidate.orden)
             setJobCandidate(prev => prev ? { ...prev, estado: nuevoEstado } : prev)
             toast.success('Etapa actualizada')
+
+            // Enviar email automático si el candidato fue descalificado
+            if (nuevoEstado === 'descalificado' && candidate?.org_id) {
+                fetch('/api/emails/rejection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        candidateId: candidate.id,
+                        orgId: candidate.org_id,
+                    }),
+                }).then(res => res.json()).then(data => {
+                    if (data.success && !data.skipped) {
+                        toast.success('Email de rechazo enviado al candidato')
+                    }
+                }).catch(err => console.error('Error enviando email de rechazo:', err))
+            }
         } catch {
             toast.error('Error al actualizar la etapa')
         }

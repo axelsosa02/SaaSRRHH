@@ -22,6 +22,7 @@ export type Candidates = {
     nombre: string
     apellido: string
     email: string
+    telefono?: string
 
     area: string
     experiencia: string
@@ -30,9 +31,9 @@ export type Candidates = {
     localidad: string
     provincia?: string
 
+    resumen?: string
     cv_url?: string
     fechaPostulacion: string
     puesto: string
     tags: string[]
-
 }

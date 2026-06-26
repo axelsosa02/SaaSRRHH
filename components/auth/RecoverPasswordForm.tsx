@@ -26,7 +26,7 @@ const RecoverPasswordForm = ({ setTypeSelected }: AuthFormProps) => {
 
     const [isLoading, setisLoading] = useState<boolean>(false)
 
-    // ============ Form ============
+    // ============ Formulario ============
     const formSchema = z.object({
         email: z.email('Por favor ingresa un correo válido. Ejemplo: user@mail.com').min(1, {
             message: 'Este campo es requerido'

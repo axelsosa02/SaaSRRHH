@@ -39,11 +39,13 @@ export async function getCandidates(): Promise<Candidates[]> {
         nombre: c.nombre,
         apellido: c.apellido,
         email: c.email,
+        telefono: c.telefono ?? undefined,
         area: c.area ?? "Sin definir",
         experiencia: c.experience?.description ?? "Sin experiencia",
         disponibilidad: c.availability?.nombre ?? "Inmediata",
         localidad: c.localidad ?? "",
         provincia: c.provincia ?? "",
+        resumen: c.resumen ?? undefined,
         cv_url: c.cv_url ?? undefined,       // campo correcto para la columna CV
         fechaPostulacion: c.created_at?.split("T")[0] ?? "",
         puesto: "Sin asignar",

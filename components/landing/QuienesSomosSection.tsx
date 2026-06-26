@@ -6,7 +6,14 @@ interface QuienesSomosSectionProps {
 
 export function QuienesSomosSection({ content }: QuienesSomosSectionProps) {
     return (
-        <section id="quienes-somos" className="py-24 w-full bg-white">
+        <section
+            id="quienes-somos"
+            className="py-24 w-full"
+            style={{
+                backgroundColor: content.bg_color || '#ffffff',
+                color: content.text_color || '#472825',
+            }}
+        >
             <div className="container flex flex-col max-w-7xl w-full mx-auto gap-12 items-center px-6">
                 <div className="flex flex-col gap-12 items-center w-full">
                     <div className="space-y-6 text-center max-w-4xl">

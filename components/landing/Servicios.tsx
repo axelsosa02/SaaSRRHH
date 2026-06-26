@@ -18,7 +18,14 @@ export default function ServicioSection({ content, colorBrand }: ServiciosProps)
     }
 
     return (
-        <section id="servicios" className="py-16 px-4 md:px-8 bg-[#fdfbf7]">
+        <section
+            id="servicios"
+            className="py-16 px-4 md:px-8"
+            style={{
+                backgroundColor: content.bg_color || '#fdfbf7',
+                color: content.text_color || '#472825',
+            }}
+        >
             <div className="max-w-md mx-auto sm:max-w-3xl lg:max-w-6xl">
 
                 {/* Encabezado */}

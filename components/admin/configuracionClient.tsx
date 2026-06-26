@@ -13,7 +13,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { cn } from '@/lib/utils'
 import { upsertSection } from '@/lib/services/configuracion landing/landingSections'
-import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, updateOrgPago, uploadSectionImage, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
+import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, updateOrgPago, uploadSectionImage, updateOrgNavItems, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
+import { ALL_NAV_ITEMS } from '@/components/landing/Navbar'
 // En tus imports
 import type {
     SectionMap,
@@ -64,6 +65,8 @@ const heroSchema = z.object({
     cta_secondary_url: z.string().optional(),
     cta_tertiary_text: z.string().optional(),
     background_image: z.string().optional(),
+    bg_color: z.string().optional(),
+    text_color: z.string().optional(),
 })
 
 const quienesSomosCardSchema = z.object({
@@ -77,6 +80,8 @@ const quienesSomosSchema = z.object({
     description_two: z.string().optional(),
     image: z.string().optional(),
     cards: z.array(quienesSomosCardSchema),
+    bg_color: z.string().optional(),
+    text_color: z.string().optional(),
 })
 
 const comoPostularseSchema = z.object({
@@ -89,6 +94,8 @@ const comoPostularseSchema = z.object({
     step3_descripcion: z.string().min(1, 'Requerido'),
     step4_titulo: z.string().optional(),
     step4_descripcion: z.string().optional(),
+    bg_color: z.string().optional(),
+    text_color: z.string().optional(),
 })
 
 const contactoSchema = z.object({
@@ -97,6 +104,8 @@ const contactoSchema = z.object({
     direccion: z.string().optional(),
     horario: z.string().optional(),
     footer_texto: z.string().optional(),
+    bg_color: z.string().optional(),
+    text_color: z.string().optional(),
 })
 
 const serviciosItemSchema = z.object({
@@ -111,6 +120,8 @@ const serviciosSchema = z.object({
     title: z.string().min(1, 'Requerido'),
     subtitle: z.string().optional(),
     items: z.array(serviciosItemSchema).min(1, 'Agregá al menos un servicio'),
+    bg_color: z.string().optional(),
+    text_color: z.string().optional(),
 })
 
 const emailsSchema = z.object({
@@ -162,6 +173,14 @@ export function ConfiguracionClient({ org, sections }: Props) {
     const [cobroPostulacion, setCobroPostulacion] = useState<boolean>(org.cobro_postulacion ?? true)
     const [savingCobro, setSavingCobro] = useState(false)
 
+    // Estado para los ítems del navbar
+    const [navItemsSelected, setNavItemsSelected] = useState<string[]>(
+        org.nav_items && org.nav_items.length > 0
+            ? org.nav_items
+            : ALL_NAV_ITEMS.map(i => i.id)
+    )
+    const [savingNav, setSavingNav] = useState(false)
+
     // Estado MP (leído del server, actualizado por el widget)
     const mpConnected = org.mp_connected ?? false
     const mpUserId = org.mp_user_id ?? null
@@ -200,6 +219,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
             cta_secondary_url: getStr(hero, 'cta_secondary_url'),
             cta_tertiary_text: getStr(hero, 'cta_tertiary_text'),
             background_image: getStr(hero, 'background_image'),
+            bg_color: getStr(hero, 'bg_color') || '#ffffff',
+            text_color: getStr(hero, 'text_color') || '#472825',
         },
     })
 
@@ -217,6 +238,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     description: '',
                 },
             ],
+            bg_color: getStr(quienes, 'bg_color') || '#ffffff',
+            text_color: getStr(quienes, 'text_color') || '#472825',
         },
     })
 
@@ -239,6 +262,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
             step3_descripcion: como?.steps?.[2]?.descripcion || '',
             step4_titulo: como?.steps?.[3]?.titulo || '',
             step4_descripcion: como?.steps?.[3]?.descripcion || '',
+            bg_color: getStr(como, 'bg_color') || '',
+            text_color: getStr(como, 'text_color') || '',
         },
     })
 
@@ -254,6 +279,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     { title: '', description: '', image: '', cta_text: 'Ver más', cta_url: '#' },
                     { title: '', description: '', image: '', cta_text: 'Ver más', cta_url: '#' },
                 ],
+            bg_color: getStr(servicios, 'bg_color') || '#fdfbf7',
+            text_color: getStr(servicios, 'text_color') || '#472825',
         },
     })
 
@@ -271,6 +298,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
             direccion: getStr(contacto, 'direccion'),
             horario: getStr(contacto, 'horario'),
             footer_texto: getStr(footer, 'texto'),
+            bg_color: getStr(contacto, 'bg_color') || '#fdfbf7',
+            text_color: getStr(contacto, 'text_color') || '#472825',
         },
     })
 
@@ -294,6 +323,16 @@ export function ConfiguracionClient({ org, sections }: Props) {
             await updateOrgGeneral(data)
             toast.success('Información guardada')
         } catch { toast.error('Error al guardar') }
+    }
+
+    /** Guarda los ítems del navbar */
+    const onSaveNavItems = async () => {
+        setSavingNav(true)
+        try {
+            await updateOrgNavItems(navItemsSelected)
+            toast.success('Navegación guardada')
+        } catch { toast.error('Error al guardar la navegación') }
+        finally { setSavingNav(false) }
     }
 
     /** Guarda/Actualiza la sección Hero en 'landing_sections' */
@@ -321,7 +360,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
                 { numero: 3, titulo: data.step3_titulo, descripcion: data.step3_descripcion },
                 ...(data.step4_titulo ? [{ numero: 4, titulo: data.step4_titulo, descripcion: data.step4_descripcion || '' }] : []),
             ]
-            await upsertSection('como_postularse', { title: data.title, steps }, 3)
+            await upsertSection('como_postularse', { title: data.title, steps, bg_color: data.bg_color, text_color: data.text_color }, 3)
             toast.success('Pasos guardados')
         } catch { toast.error('Error al guardar') }
     }
@@ -343,6 +382,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     telefono: data.telefono,
                     direccion: data.direccion,
                     horario: data.horario,
+                    bg_color: data.bg_color,
+                    text_color: data.text_color,
                 }, 4),
                 upsertSection('footer', { texto: data.footer_texto || '' }, 5),
             ])
@@ -603,6 +644,35 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     </form>
                 </Form>
 
+                {/* ── Card de navegación ── */}
+                <SectionCard title="Menú de navegación" desc="Elegí qué ítems se muestran en la barra de navegación de tu landing.">
+                    <div className="flex flex-col gap-3">
+                        {ALL_NAV_ITEMS.map(item => (
+                            <label key={item.id} className="flex items-center gap-3 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={navItemsSelected.includes(item.id)}
+                                    onChange={e => {
+                                        if (e.target.checked) {
+                                            setNavItemsSelected(prev => [...prev, item.id])
+                                        } else {
+                                            setNavItemsSelected(prev => prev.filter(id => id !== item.id))
+                                        }
+                                    }}
+                                    className="h-4 w-4 rounded border-gray-300 text-primary"
+                                />
+                                <span className="text-sm font-medium">{item.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <Button onClick={onSaveNavItems} disabled={savingNav}>
+                            {savingNav && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Guardar navegación
+                        </Button>
+                    </div>
+                </SectionCard>
+
                 {/* ── Card de cobro (fuera del form para guardado independiente) ── */}
                 <SectionCard
                     title="Cobro por postulación"
@@ -699,6 +769,30 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             <FormField control={heroForm.control} name="background_image" render={({ field }) => (
                                 <FormItem><FormLabel>URL de imagen de fondo <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl></FormItem>
                             )} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={heroForm.control} name="bg_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de fondo</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#ffffff'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#ffffff" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                                <FormField control={heroForm.control} name="text_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de texto</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#472825'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#472825" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                            </div>
                         </SectionCard>
                         <FormActions form={heroForm} onReset={() => heroForm.reset()} />
                     </form>
@@ -759,6 +853,32 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                 Agregar Card
                             </Button>
                         </SectionCard>
+                        <SectionCard title="Colores de sección">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={quienesSomosForm.control} name="bg_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de fondo</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#ffffff'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#ffffff" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                                <FormField control={quienesSomosForm.control} name="text_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de texto</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#472825'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#472825" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                            </div>
+                        </SectionCard>
                         <FormActions form={quienesSomosForm} onReset={() => quienesSomosForm.reset()} />
                     </form>
                 </Form>
@@ -784,6 +904,32 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                 )} />
                             </SectionCard>
                         ))}
+                        <SectionCard title="Colores de sección">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={comoPostularseForm.control} name="bg_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de fondo</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#ffffff'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#ffffff" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                                <FormField control={comoPostularseForm.control} name="text_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de texto</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#472825'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#472825" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                            </div>
+                        </SectionCard>
 
                         <FormActions form={comoPostularseForm} onReset={() => comoPostularseForm.reset()} />
                     </form>
@@ -867,6 +1013,32 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             + Agregar servicio
                         </Button>
 
+                        <SectionCard title="Colores de sección">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={serviciosForm.control} name="bg_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de fondo</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#fdfbf7'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#fdfbf7" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                                <FormField control={serviciosForm.control} name="text_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de texto</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#472825'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#472825" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                            </div>
+                        </SectionCard>
                         <FormActions form={serviciosForm} onReset={() => serviciosForm.reset()} />
                     </form>
                 </Form>
@@ -897,6 +1069,33 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             <FormField control={contactoForm.control} name="footer_texto" render={({ field }) => (
                                 <FormItem><FormLabel>Texto del footer</FormLabel><FormControl><Input {...field} placeholder={`© ${new Date().getFullYear()} ${org.nombre}`} /></FormControl></FormItem>
                             )} />
+                        </SectionCard>
+
+                        <SectionCard title="Colores de sección">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={contactoForm.control} name="bg_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de fondo</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#fdfbf7'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#fdfbf7" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                                <FormField control={contactoForm.control} name="text_color" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Color de texto</FormLabel>
+                                        <FormControl>
+                                            <div className="flex items-center gap-2">
+                                                <input type="color" value={field.value || '#472825'} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                <Input {...field} placeholder="#472825" />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )} />
+                            </div>
                         </SectionCard>
 
                         <FormActions form={contactoForm} onReset={() => contactoForm.reset()} />

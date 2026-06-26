@@ -141,3 +141,22 @@ export async function uploadSectionImage(file: File, slot: string): Promise<stri
 
     return urlData.publicUrl
 }
+
+export async function updateOrgNavItems(nav_items: string[]) {
+    const supabase = createBrowserClient()
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) throw new Error('No autenticado')
+
+    const { data: profile } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', userData.user.id)
+        .single()
+
+    const { error } = await supabase
+        .from('organizations')
+        .update({ nav_items })
+        .eq('id', profile?.org_id)
+
+    if (error) throw error
+}

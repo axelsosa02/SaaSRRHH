@@ -135,6 +135,25 @@ export default function KanbanPage() {
         try {
             await moveCandidate(activeId, targetEstado, nuevoOrden)
             toast.success('Candidato movido correctamente')
+
+            // Enviar email automático si el candidato fue descalificado
+            if (targetEstado === 'descalificado') {
+                const movedCard = candidates.find(c => c.id === activeId)
+                if (movedCard?.candidate?.org_id) {
+                    fetch('/api/emails/rejection', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            candidateId: movedCard.candidate.id,
+                            orgId: movedCard.candidate.org_id,
+                        }),
+                    }).then(res => res.json()).then(data => {
+                        if (data.success && !data.skipped) {
+                            toast.success('Email de rechazo enviado al candidato')
+                        }
+                    }).catch(err => console.error('Error enviando email de rechazo:', err))
+                }
+            }
         } catch {
             toast.error('Error al mover el candidato')
             fetchData() // revert

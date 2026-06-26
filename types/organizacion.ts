@@ -17,6 +17,7 @@ export interface OrgConfig {
     // Mercado Pago OAuth (NUNCA exponer mp_access_token al frontend)
     mp_connected: boolean
     mp_user_id: string | null
+    nav_items?: string[] | null
     // Plan
     plan_id: string
     plan_expires_at: string | null

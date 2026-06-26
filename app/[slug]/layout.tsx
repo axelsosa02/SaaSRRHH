@@ -27,6 +27,7 @@ export default async function LandingLayout({children, params,}: {children: Reac
                 nombre={org.nombre}
                 slug={slug}
                 colorBrand={org.color_primario || '#1e3a8a'}
+                navItems={org.nav_items}
             />
             <main className="flex-1">
                 {children}

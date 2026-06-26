@@ -8,8 +8,14 @@ export type SectionType =
     | 'footer'
     | 'servicios'
 
+// Colores opcionales por sección
+interface SectionColors {
+    bg_color?: string   // e.g. "#ffffff"
+    text_color?: string // e.g. "#1a1a1a"
+}
+
 // Contenido tipado por sección
-export interface HeroContent {
+export interface HeroContent extends SectionColors {
     title: string
     subtitle?: string
     cta_text: string
@@ -23,7 +29,7 @@ export interface QuienesSomosCard {
     description: string
 }
 
-export interface QuienesSomosContent {
+export interface QuienesSomosContent extends SectionColors {
     title: string
     description: string
     description_two?: string
@@ -32,7 +38,7 @@ export interface QuienesSomosContent {
 }
 
 
-export interface ComoPostularseContent {
+export interface ComoPostularseContent extends SectionColors {
     title: string
     steps: {
         numero: number
@@ -41,14 +47,14 @@ export interface ComoPostularseContent {
     }[]
 }
 
-export interface ContactoContent {
+export interface ContactoContent extends SectionColors {
     email: string
     telefono?: string
     direccion?: string
     horario?: string
 }
 
-export interface FooterContent {
+export interface FooterContent extends SectionColors {
     texto: string
 }
 
@@ -60,7 +66,7 @@ export interface ServiciosItem {
     cta_url?: string
 }
 
-export interface ServiciosContent {
+export interface ServiciosContent extends SectionColors {
     title: string
     subtitle?: string
     items: ServiciosItem[]
@@ -85,4 +91,4 @@ export interface LandingSection {
 }
 
 // Map de secciones — para acceder fácil por tipo
-export type SectionMap = Partial<Record<SectionType, SectionContent>>
+export type SectionMap = Partial<Record<SectionType, SectionContent>>

@@ -216,7 +216,7 @@ export function ApplicationForm({
                         name="nombre"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nombre</FormLabel>
+                                <FormLabel>Nombre *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Tu nombre" {...field} />
                                 </FormControl>
@@ -229,7 +229,7 @@ export function ApplicationForm({
                         name="apellido"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Apellido</FormLabel>
+                                <FormLabel>Apellido *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Tu apellido" {...field} />
                                 </FormControl>
@@ -245,7 +245,7 @@ export function ApplicationForm({
                         name="email"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Email</FormLabel>
+                                <FormLabel>Email *</FormLabel>
                                 <FormControl>
                                     <Input type="email" placeholder="email@ejemplo.com" {...field} />
                                 </FormControl>
@@ -259,7 +259,7 @@ export function ApplicationForm({
                         name="telefono"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Teléfono</FormLabel>
+                                <FormLabel>Teléfono *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="+54 9 11 ..." {...field} />
                                 </FormControl>
@@ -275,7 +275,7 @@ export function ApplicationForm({
                         name="localidad"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Localidad</FormLabel>
+                                <FormLabel>Localidad *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Tu localidad" {...field} />
                                 </FormControl>
@@ -289,7 +289,7 @@ export function ApplicationForm({
                         name="provincia"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Provincia</FormLabel>
+                                <FormLabel>Provincia *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Tu provincia" {...field} />
                                 </FormControl>
@@ -304,7 +304,7 @@ export function ApplicationForm({
                     name="area"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Área de interés</FormLabel>
+                            <FormLabel>Área de interés *</FormLabel>
                             <FormControl>
                                 <Input placeholder="Ej: Recursos Humanos, Programador, Marketing" {...field} />
                             </FormControl>
@@ -319,7 +319,7 @@ export function ApplicationForm({
                         name="experiencia"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Experiencia</FormLabel>
+                                <FormLabel>Experiencia *</FormLabel>
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
@@ -348,7 +348,7 @@ export function ApplicationForm({
                         name="disponibilidad"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Disponibilidad</FormLabel>
+                                <FormLabel>Disponibilidad *</FormLabel>
                                 <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
@@ -408,7 +408,7 @@ export function ApplicationForm({
                 />
 
                 <div className="space-y-2">
-                    <FormLabel>Currículum Vitae (CV)</FormLabel>
+                    <FormLabel>Currículum Vitae (CV) *</FormLabel>
                     {selectedFile ? (
                         <div className="border rounded-xl p-4 flex items-center justify-between bg-slate-50 border-slate-200">
                             <div className="flex items-center gap-3">
