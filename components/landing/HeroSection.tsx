@@ -11,7 +11,7 @@ interface HeroSectionProps {
 export function HeroSection({ content, slug, colorBrand }: HeroSectionProps) {
     return (
         <section
-            className="relative h-[80dvh] w-full py-24 lg:py-36 overflow-hidden"
+            className="relative h-full w-full py-24 lg:py-36 overflow-hidden"
             style={{
                 backgroundColor: content.bg_color || '#ffffff',
                 color: content.text_color || '#472825',
