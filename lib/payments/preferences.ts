@@ -29,7 +29,13 @@ export async function createPaymentPreference({ orgSlug, token, accessToken, job
     if (jobId) successUrl.searchParams.set('job', jobId)
 
     const failureUrl = new URL(`/${orgSlug}/pago`, BASE_URL)
-    const pendingUrl = new URL(`/${orgSlug}/pago`, BASE_URL)
+
+    // La URL de pending TAMBIÉN apunta a /pago/success con el token,
+    // así nuestro código puede verificar el pago y dejar pasar al candidato
+    // sin hacerlo esperar (los pagos con tarjeta suelen quedar en "in_process" unos segundos).
+    const pendingUrl = new URL(`/${orgSlug}/pago/success`, BASE_URL)
+    pendingUrl.searchParams.set('token', token)
+    if (jobId) pendingUrl.searchParams.set('job', jobId)
 
     // auto_return y notification_url solo funcionan con URLs públicas HTTPS.
     // MP rechaza localhost con error 400 "auto_return invalid".
@@ -54,8 +60,9 @@ export async function createPaymentPreference({ orgSlug, token, accessToken, job
                 pending: pendingUrl.toString(),
             },
             // Solo en producción (URL pública HTTPS)
+            // Usamos 'all' para que MP auto-redirija en TODOS los estados (approved, pending, etc.)
             ...(isPublicUrl && {
-                auto_return: 'approved' as const,
+                auto_return: 'all' as const,
                 notification_url: `${BASE_URL}/api/webhooks/mercadopago`,
             }),
             statement_descriptor: 'TALENTO RH',
