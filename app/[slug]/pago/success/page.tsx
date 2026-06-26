@@ -32,8 +32,10 @@ export default async function PagoSuccessPage({
         const payment = await verifyPayment(payment_id)
         paymentStatus = payment.status
 
-        if (payment.isApproved && payment.transactionAmount === 7000) {
-            // Aprobamos el token en nuestra DB
+        // Consideramos válido el pago si está aprobado, o si está en proceso/pendiente
+        // (es muy común que tarjetas tarden unos minutos en confirmar, no queremos bloquear al candidato)
+        if ((payment.isApproved || paymentStatus === 'in_process' || paymentStatus === 'pending') && payment.transactionAmount === 7000) {
+            // Aprobamos el token en nuestra DB temporal o permanentemente para que puedan llenar el CV
             await approvePaymentToken({ token, mpPaymentId: payment_id })
             paymentApproved = true
         }
@@ -42,9 +44,6 @@ export default async function PagoSuccessPage({
     }
 
     if (!paymentApproved) {
-        if (paymentStatus === 'in_process' || paymentStatus === 'pending') {
-            return <PendingView slug={slug} token={token} paymentId={payment_id} job={job} />
-        }
         return <ErrorView slug={slug} message="No pudimos verificar tu pago o fue rechazado. Por favor, intentá de nuevo." />
     }
 
@@ -53,26 +52,6 @@ export default async function PagoSuccessPage({
 
     // Redirigimos directamente al formulario
     redirect(formUrl)
-}
-
-function PendingView({ slug, token, paymentId, job }: { slug: string; token: string; paymentId: string; job?: string }) {
-    // Generamos la misma URL en la que estamos para que recargue y vuelva a verificar
-    const reloadUrl = `/${slug}/pago/success?token=${token}&payment_id=${paymentId}${job ? `&job=${job}` : ''}`
-    
-    return (
-        <div className="container mx-auto py-20">
-            <div className="max-w-md mx-auto text-center space-y-6">
-                <Clock className="size-16 text-yellow-500 mx-auto" />
-                <h1 className="text-2xl font-bold">Tu pago está en proceso</h1>
-                <p className="text-muted-foreground">
-                    Mercado Pago está procesando tu pago. Esto puede demorar unos minutos. Si el dinero ya fue debitado, no vuelvas a pagar.
-                </p>
-                <Button asChild>
-                    <Link href={reloadUrl}>Consultar estado nuevamente</Link>
-                </Button>
-            </div>
-        </div>
-    )
 }
 
 function ErrorView({ slug, message }: { slug: string; message: string }) {
