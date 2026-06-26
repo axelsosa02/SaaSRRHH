@@ -68,16 +68,44 @@ export async function approvePaymentToken({
 }) {
     const supabase = await createClientServer()
 
-    const { error } = await supabase
+    // Primero intentamos actualizar si está pendiente
+    const { error, count } = await supabase
         .from('payments')
         .update({
             mp_payment_id: mpPaymentId,
             estado: 'aprobado',
         })
         .eq('token', token)
-        .eq('estado', 'pendiente') // solo actualiza si aún está pendiente
+        .eq('estado', 'pendiente')
 
     if (error) throw error
+
+    // Si no se actualizó ninguna fila, puede que ya esté aprobado (retry, webhook previo, etc.)
+    // Verificamos que el token existe y está aprobado
+    if (count === 0) {
+        const { data: existing } = await supabase
+            .from('payments')
+            .select('estado')
+            .eq('token', token)
+            .maybeSingle()
+
+        if (existing?.estado === 'aprobado') {
+            // Ya estaba aprobado, no hay problema
+            console.log('[approvePaymentToken] Token ya estaba aprobado:', token)
+            return
+        }
+
+        // Si no está ni pendiente ni aprobado, forzamos la aprobación
+        const { error: forceError } = await supabase
+            .from('payments')
+            .update({
+                mp_payment_id: mpPaymentId,
+                estado: 'aprobado',
+            })
+            .eq('token', token)
+
+        if (forceError) throw forceError
+    }
 }
 
 /**
