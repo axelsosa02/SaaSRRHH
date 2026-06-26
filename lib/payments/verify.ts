@@ -1,5 +1,5 @@
 import { Payment } from 'mercadopago'
-import { mpClient } from './client'
+import { mpClient, getMpClient } from './client'
 
 export type PaymentStatus = 'approved' | 'pending' | 'rejected' | 'cancelled' | 'refunded' | 'in_process' | 'in_mediation' | 'charged_back'
 
@@ -16,8 +16,9 @@ export interface VerifiedPayment {
  * Verifica el estado de un pago consultando la API de Mercado Pago.
  * Lanza un error si el payment_id no existe o la llamada falla.
  */
-export async function verifyPayment(paymentId: string | number): Promise<VerifiedPayment> {
-    const paymentClient = new Payment(mpClient)
+export async function verifyPayment(paymentId: string | number, accessToken?: string): Promise<VerifiedPayment> {
+    const client = accessToken ? getMpClient(accessToken) : mpClient
+    const paymentClient = new Payment(client)
 
     const data = await paymentClient.get({ id: Number(paymentId) })
 

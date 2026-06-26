@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyPayment } from '@/lib/payments/verify'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * POST /api/webhooks/mercadopago
@@ -11,10 +12,11 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
 
-        // MP envía el tipo de notificación y el id del recurso
-        const { type, data } = body as {
+        // MP envía el tipo de notificación, el id del recurso y el user_id de la cuenta de MP destino
+        const { type, data, user_id } = body as {
             type: string
             data: { id: string }
+            user_id?: string | number
         }
 
         // Solo nos interesan las notificaciones de tipo "payment"
@@ -27,8 +29,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'payment id faltante' }, { status: 400 })
         }
 
-        // Verificamos el pago contra la API de MP
-        const payment = await verifyPayment(paymentId)
+        // Buscamos el token de la organización basándonos en el user_id de Mercado Pago
+        let accessToken: string | undefined
+        if (user_id) {
+            try {
+                const supabase = createAdminClient()
+                const { data: orgData } = await supabase
+                    .from('organizations')
+                    .select('mp_access_token')
+                    .eq('mp_user_id', String(user_id))
+                    .maybeSingle()
+                
+                if (orgData?.mp_access_token) {
+                    accessToken = orgData.mp_access_token
+                }
+            } catch (err) {
+                console.error('[webhook/mp] Error buscando access token de la org:', err)
+            }
+        }
+
+        // Fallback al token del .env si no se encontró
+        if (!accessToken) {
+            accessToken = process.env.YOUR_ACCESS_TOKEN
+        }
+
+        // Verificamos el pago contra la API de MP usando el token correspondiente
+        const payment = await verifyPayment(paymentId, accessToken)
 
         console.log('[webhook/mp] Pago recibido:', {
             id: payment.id,

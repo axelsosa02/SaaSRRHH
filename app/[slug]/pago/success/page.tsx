@@ -1,6 +1,7 @@
 import { getOrganizationBySlug } from '@/lib/queries/organizations'
 import { verifyPayment } from '@/lib/payments/verify'
 import { approvePaymentToken } from '@/lib/payments/tokens'
+import { getOrgMpAccessToken } from '@/lib/payments/oauth'
 import { notFound, redirect } from 'next/navigation'
 import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
@@ -28,8 +29,16 @@ export default async function PagoSuccessPage({
     let paymentStatus = 'pending'
 
     try {
-        // Verificamos el pago contra la API de Mercado Pago
-        const payment = await verifyPayment(payment_id)
+        // Obtenemos el access token de Mercado Pago de la organización
+        let accessToken: string | undefined
+        try {
+            accessToken = await getOrgMpAccessToken(org.id)
+        } catch {
+            accessToken = process.env.YOUR_ACCESS_TOKEN
+        }
+
+        // Verificamos el pago contra la API de Mercado Pago usando las credenciales de la org
+        const payment = await verifyPayment(payment_id, accessToken)
         paymentStatus = payment.status
 
         // Consideramos válido el pago si está aprobado, o si está en proceso/pendiente
