@@ -1,18 +1,80 @@
 import { getOrganizationBySlug } from '@/lib/queries/organizations'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ShieldCheck, CheckCircle2, Lock } from 'lucide-react'
 import { PayButton } from '@/components/landing/PayButton'
+import { approvePaymentToken } from '@/lib/payments/tokens'
+import { verifyPayment } from '@/lib/payments/verify'
+import { getOrgMpAccessToken } from '@/lib/payments/oauth'
+
+// Forzar que esta página NUNCA se cachee
+export const dynamic = 'force-dynamic'
 
 export default async function PagoPage({
     params,
+    searchParams,
 }: {
     params: Promise<{ slug: string }>
+    searchParams: Promise<Record<string, string | undefined>>
 }) {
     const { slug } = await params
-    const org = await getOrganizationBySlug(slug)
+    const sp = await searchParams
 
+    const org = await getOrganizationBySlug(slug)
     if (!org) return notFound()
 
+    // ──────────────────────────────────────────────────────────
+    // INTERCEPTOR: Mercado Pago a veces redirige a /pago en vez de /pago/success.
+    // Si detectamos params de MP (payment_id, external_reference, status),
+    // verificamos el pago y redirigimos al formulario.
+    // ──────────────────────────────────────────────────────────
+    const mpPaymentId = sp.payment_id || sp.collection_id
+    const mpStatus = sp.status || sp.collection_status
+    // external_reference es el token UUID que guardamos en nuestra DB
+    const mpToken = sp.external_reference || sp.token
+
+    console.log('[pago] Query params recibidos:', JSON.stringify(sp))
+
+    if (mpPaymentId && mpToken) {
+        console.log('[pago] Detectado redirect de MP con payment_id:', mpPaymentId, 'token:', mpToken, 'status:', mpStatus)
+
+        // Si el status indica que pagó (o está en proceso), aprobamos y redirigimos
+        if (mpStatus === 'approved' || mpStatus === 'in_process' || mpStatus === 'pending' || mpStatus === 'null') {
+            try {
+                // Intentamos verificar contra la API de MP
+                let accessToken: string | undefined
+                try {
+                    accessToken = await getOrgMpAccessToken(org.id)
+                } catch {
+                    accessToken = process.env.YOUR_ACCESS_TOKEN
+                }
+
+                try {
+                    const payment = await verifyPayment(mpPaymentId, accessToken)
+                    console.log('[pago] Verificación de MP:', { status: payment.status, amount: payment.transactionAmount })
+                } catch (verifyErr) {
+                    console.warn('[pago] No se pudo verificar contra API de MP, continuando con fallback:', verifyErr)
+                }
+
+                // Aprobamos el token en nuestra DB
+                await approvePaymentToken({ token: mpToken, mpPaymentId })
+                console.log('[pago] Token aprobado, redirigiendo al formulario')
+
+                // Redirigimos al formulario
+                const formUrl = `/${slug}/postularse?token=${mpToken}`
+                redirect(formUrl)
+            } catch (error) {
+                // Si el error es un NEXT_REDIRECT (de la función redirect), lo re-lanzamos
+                if (error && typeof error === 'object' && 'digest' in error) {
+                    throw error
+                }
+                console.error('[pago] Error procesando redirect de MP:', error)
+            }
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Flujo normal: mostrar el botón de pago
+    // ──────────────────────────────────────────────────────────
     const colorBrand = org.color_primario || '#472825'
 
     return (
