@@ -1,4 +1,4 @@
-import { createClientServer } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const TOKEN_EXPIRY_HOURS = 24
 
@@ -6,6 +6,9 @@ const TOKEN_EXPIRY_HOURS = 24
  * Crea un registro de pago pendiente en la tabla `payments`.
  * Se llama ANTES de redirigir al usuario a Mercado Pago.
  * Retorna el token UUID que se usará como parámetro de retorno.
+ *
+ * Usa el admin client (service_role) porque el candidato NO está autenticado
+ * y RLS bloquearía la operación silenciosamente.
  */
 export async function createPendingPayment({
     orgId,
@@ -14,7 +17,7 @@ export async function createPendingPayment({
     orgId: string
     candidateEmail?: string
 }): Promise<string> {
-    const supabase = await createClientServer()
+    const supabase = createAdminClient()
 
     const token = crypto.randomUUID()
 
@@ -37,7 +40,7 @@ export async function createPendingPayment({
  * que no requieren pago. Permite reutilizar isTokenValid() sin cambios.
  */
 export async function createFreeToken(orgId: string): Promise<string> {
-    const supabase = await createClientServer()
+    const supabase = createAdminClient()
 
     const token = crypto.randomUUID()
 
@@ -66,7 +69,7 @@ export async function approvePaymentToken({
     token: string
     mpPaymentId: string
 }) {
-    const supabase = await createClientServer()
+    const supabase = createAdminClient()
 
     // Primero intentamos actualizar si está pendiente
     const { error, count } = await supabase
@@ -81,7 +84,6 @@ export async function approvePaymentToken({
     if (error) throw error
 
     // Si no se actualizó ninguna fila, puede que ya esté aprobado (retry, webhook previo, etc.)
-    // Verificamos que el token existe y está aprobado
     if (count === 0) {
         const { data: existing } = await supabase
             .from('payments')
@@ -90,7 +92,6 @@ export async function approvePaymentToken({
             .maybeSingle()
 
         if (existing?.estado === 'aprobado') {
-            // Ya estaba aprobado, no hay problema
             console.log('[approvePaymentToken] Token ya estaba aprobado:', token)
             return
         }
@@ -118,7 +119,7 @@ export async function approvePaymentToken({
 export async function isTokenValid(token: string): Promise<boolean> {
     if (!token) return false
 
-    const supabase = await createClientServer()
+    const supabase = createAdminClient()
 
     const expiryDate = new Date()
     expiryDate.setHours(expiryDate.getHours() - TOKEN_EXPIRY_HOURS)
@@ -142,7 +143,7 @@ export async function isTokenValid(token: string): Promise<boolean> {
  * Evita que el mismo pago se use para postularse dos veces.
  */
 export async function markTokenAsUsed(token: string) {
-    const supabase = await createClientServer()
+    const supabase = createAdminClient()
 
     const { error } = await supabase
         .from('payments')
@@ -151,3 +152,4 @@ export async function markTokenAsUsed(token: string) {
 
     if (error) throw error
 }
+
