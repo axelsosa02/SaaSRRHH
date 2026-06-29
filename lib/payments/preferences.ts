@@ -10,15 +10,17 @@ interface CreatePreferenceOptions {
     token: string
     /** Access token de MP de la organización (de la tabla organizations) */
     accessToken: string
+    /** Monto a cobrar en ARS */
+    monto: number
     /** ID del puesto al que se postula (opcional) */
     jobId?: string
 }
 
 /**
- * Crea una Preference de Mercado Pago para el pago de $7.000 ARS.
+ * Crea una Preference de Mercado Pago para el pago configurado por la org.
  * Usa el access_token de la org → el dinero va a su cuenta de MP.
  */
-export async function createPaymentPreference({ orgSlug, token, accessToken, jobId }: CreatePreferenceOptions) {
+export async function createPaymentPreference({ orgSlug, token, accessToken, monto, jobId }: CreatePreferenceOptions) {
     // Creamos el cliente con el token de ESTA organización
     const client = getMpClient(accessToken)
     const preference = new Preference(client)
@@ -49,7 +51,7 @@ export async function createPaymentPreference({ orgSlug, token, accessToken, job
                     title: 'Servicio de gestión de CV',
                     description: 'Token de acceso al proceso de selección',
                     quantity: 1,
-                    unit_price: 7000,
+                    unit_price: monto,
                     currency_id: 'ARS',
                 },
             ],

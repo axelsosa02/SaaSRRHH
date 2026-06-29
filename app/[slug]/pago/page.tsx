@@ -76,6 +76,8 @@ export default async function PagoPage({
     // Flujo normal: mostrar el botón de pago
     // ──────────────────────────────────────────────────────────
     const colorBrand = org.color_primario || '#472825'
+    const monto = org.monto_postulacion || 7000
+    const montoFormateado = monto.toLocaleString('es-AR')
 
     return (
         <div className="container mx-auto py-12 lg:py-20">
@@ -85,7 +87,7 @@ export default async function PagoPage({
                     <h1 className="text-3xl font-bold tracking-tight">Finalizá tu postulación</h1>
                     <p className="text-muted-foreground">
                         Para completar tu aplicación a <strong>{org.nombre}</strong>, es necesario
-                        abonar el token de servicio de $7.000 ARS.
+                        abonar el token de servicio de ${montoFormateado} ARS.
                     </p>
                 </div>
 
@@ -93,7 +95,7 @@ export default async function PagoPage({
                     <div className="p-6 bg-slate-50 border-b border-slate-200">
                         <div className="flex justify-between items-center">
                             <span className="font-medium text-slate-600">Servicio de gestión de CV</span>
-                            <span className="text-2xl font-bold">$7.000</span>
+                            <span className="text-2xl font-bold">${montoFormateado}</span>
                         </div>
                     </div>
 
@@ -122,6 +124,7 @@ export default async function PagoPage({
                         <PayButton
                             orgId={org.id}
                             orgSlug={slug}
+                            monto={monto}
                             colorBrand={colorBrand}
                         />
 

@@ -171,6 +171,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
 
     // Estado para cobro por postulación
     const [cobroPostulacion, setCobroPostulacion] = useState<boolean>(org.cobro_postulacion ?? true)
+    const [montoPostulacion, setMontoPostulacion] = useState<number>(org.monto_postulacion ?? 7000)
     const [savingCobro, setSavingCobro] = useState(false)
 
     // Estado para los ítems del navbar
@@ -691,7 +692,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     {cobroPostulacion
-                                        ? 'Los candidatos deben abonar $7.000 ARS para postularse.'
+                                        ? `Los candidatos deben abonar $${montoPostulacion.toLocaleString('es-AR')} ARS para postularse.`
                                         : 'Los candidatos acceden al formulario directamente sin pagar.'}
                                 </p>
                             </div>
@@ -703,7 +704,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                 const nuevoValor = !cobroPostulacion
                                 setSavingCobro(true)
                                 try {
-                                    await updateOrgPago(nuevoValor)
+                                    await updateOrgPago(nuevoValor, montoPostulacion)
                                     setCobroPostulacion(nuevoValor)
                                     toast.success(nuevoValor ? 'Pago habilitado' : 'Acceso gratuito habilitado')
                                 } catch {
@@ -729,6 +730,55 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             )}
                         </button>
                     </div>
+
+                    {cobroPostulacion && (
+                        <div className="mt-4 pt-4 border-t border-border space-y-3">
+                            <div>
+                                <label htmlFor="monto-postulacion" className="text-sm font-medium">
+                                    Monto a cobrar (ARS)
+                                </label>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Ingresá el monto que los candidatos deberán pagar para acceder al formulario de postulación.
+                                </p>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                                        <Input
+                                            id="monto-postulacion"
+                                            type="number"
+                                            min={100}
+                                            step={100}
+                                            value={montoPostulacion}
+                                            onChange={(e) => setMontoPostulacion(Number(e.target.value))}
+                                            className="pl-7"
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={savingCobro}
+                                        onClick={async () => {
+                                            if (montoPostulacion < 100) {
+                                                toast.error('El monto mínimo es $100 ARS')
+                                                return
+                                            }
+                                            setSavingCobro(true)
+                                            try {
+                                                await updateOrgPago(cobroPostulacion, montoPostulacion)
+                                                toast.success(`Monto actualizado a $${montoPostulacion.toLocaleString('es-AR')} ARS`)
+                                            } catch {
+                                                toast.error('Error al guardar el monto')
+                                            } finally {
+                                                setSavingCobro(false)
+                                            }
+                                        }}
+                                    >
+                                        {savingCobro ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar monto'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </SectionCard>
 
                 {/* ── Widget de Mercado Pago ── */}

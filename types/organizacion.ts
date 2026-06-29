@@ -14,6 +14,7 @@ export interface OrgConfig {
     mail_rechazo_asunto: string | null
     mail_rechazo: string | null
     cobro_postulacion: boolean
+    monto_postulacion: number
     // Mercado Pago OAuth (NUNCA exponer mp_access_token al frontend)
     mp_connected: boolean
     mp_user_id: string | null

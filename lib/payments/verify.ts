@@ -35,17 +35,18 @@ export async function verifyPayment(paymentId: string | number, accessToken?: st
 /**
  * Valida que un pago sea válido para desbloquear el formulario:
  * - status === 'approved'
- * - transaction_amount === 7000
+ * - transaction_amount coincide con el monto esperado
  * - currency_id === 'ARS'
  *
  * Retorna `true` si el pago es válido, `false` si no.
  */
-export async function isPaymentValidForForm(paymentId: string | number): Promise<boolean> {
+export async function isPaymentValidForForm(paymentId: string | number, expectedAmount?: number): Promise<boolean> {
     try {
         const payment = await verifyPayment(paymentId)
+        const amountOk = expectedAmount ? payment.transactionAmount === expectedAmount : true
         return (
             payment.isApproved &&
-            payment.transactionAmount === 7000 &&
+            amountOk &&
             payment.currencyId === 'ARS'
         )
     } catch {

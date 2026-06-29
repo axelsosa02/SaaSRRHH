@@ -60,7 +60,7 @@ export async function updateOrgEmails(data: {
     if (error) throw error
 }
 
-export async function updateOrgPago(cobro_postulacion: boolean) {
+export async function updateOrgPago(cobro_postulacion: boolean, monto_postulacion?: number) {
     const supabase = createBrowserClient()
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
@@ -71,9 +71,14 @@ export async function updateOrgPago(cobro_postulacion: boolean) {
         .eq('id', userData.user.id)
         .single()
 
+    const updateData: Record<string, unknown> = { cobro_postulacion }
+    if (monto_postulacion !== undefined) {
+        updateData.monto_postulacion = monto_postulacion
+    }
+
     const { error } = await supabase
         .from('organizations')
-        .update({ cobro_postulacion })
+        .update(updateData)
         .eq('id', profile?.org_id)
 
     if (error) throw error

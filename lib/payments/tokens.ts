@@ -13,9 +13,11 @@ const TOKEN_EXPIRY_HOURS = 24
 export async function createPendingPayment({
     orgId,
     candidateEmail,
+    monto,
 }: {
     orgId: string
     candidateEmail?: string
+    monto: number
 }): Promise<string> {
     const supabase = createAdminClient()
 
@@ -24,7 +26,7 @@ export async function createPendingPayment({
     const { error } = await supabase.from('payments').insert({
         org_id: orgId,
         candidate_email: candidateEmail ?? '',
-        monto: 7000,
+        monto,
         estado: 'pendiente',
         token,
         token_usado: false,

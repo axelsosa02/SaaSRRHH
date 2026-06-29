@@ -7,16 +7,17 @@ import { createClientServer } from '@/lib/supabase/server'
  * POST /api/mercadopago/create-preference
  *
  * Crea una preference de MP usando el access_token de la organización.
- * Body: { orgId: string, orgSlug: string, token: string, jobId?: string }
+ * Body: { orgId: string, orgSlug: string, token: string, monto: number, jobId?: string }
  * Response: { preferenceId, initPoint, sandboxInitPoint }
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { orgId, orgSlug, token, jobId } = body as {
+        const { orgId, orgSlug, token, monto, jobId } = body as {
             orgId: string
             orgSlug: string
             token: string
+            monto: number
             jobId?: string
         }
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const result = await createPaymentPreference({ orgSlug, token, accessToken, jobId })
+        const result = await createPaymentPreference({ orgSlug, token, accessToken, monto: monto || 7000, jobId })
 
         return NextResponse.json(result)
     } catch (error) {

@@ -79,9 +79,11 @@ export default async function PagoSuccessPage({
         })
 
         // Consideramos válido: approved, in_process o pending
+        // El monto debe coincidir con lo configurado por la organización
+        const expectedMonto = org.monto_postulacion || 7000
         if (
             (payment.isApproved || payment.status === 'in_process' || payment.status === 'pending') &&
-            payment.transactionAmount === 7000
+            payment.transactionAmount === expectedMonto
         ) {
             await approvePaymentToken({ token, mpPaymentId: payment_id })
             paymentApproved = true
@@ -90,6 +92,7 @@ export default async function PagoSuccessPage({
             console.warn('[pago/success] Pago no válido:', {
                 status: payment.status,
                 amount: payment.transactionAmount,
+                expected: expectedMonto,
             })
         }
     } catch (error) {

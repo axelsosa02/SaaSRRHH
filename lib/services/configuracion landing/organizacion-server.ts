@@ -31,6 +31,7 @@ export async function getOrgConfig(): Promise<OrgConfig | null> {
             mail_rechazo_asunto,
             mail_rechazo,
             cobro_postulacion,
+            monto_postulacion,
             mp_connected,
             mp_user_id,
             nav_items

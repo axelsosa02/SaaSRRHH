@@ -8,10 +8,11 @@ import { toast } from 'react-hot-toast'
 interface PayButtonProps {
     orgId: string
     orgSlug: string
+    monto: number
     colorBrand?: string
 }
 
-export function PayButton({ orgId, orgSlug, colorBrand = '#472825' }: PayButtonProps) {
+export function PayButton({ orgId, orgSlug, monto, colorBrand = '#472825' }: PayButtonProps) {
     const [loading, setLoading] = useState(false)
 
     async function handlePay() {
@@ -21,7 +22,7 @@ export function PayButton({ orgId, orgSlug, colorBrand = '#472825' }: PayButtonP
             const tokenRes = await fetch('/api/mercadopago/create-token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orgId }),
+                body: JSON.stringify({ orgId, monto }),
             })
 
             if (!tokenRes.ok) throw new Error('No se pudo iniciar el pago')
@@ -31,7 +32,7 @@ export function PayButton({ orgId, orgSlug, colorBrand = '#472825' }: PayButtonP
             const prefRes = await fetch('/api/mercadopago/create-preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orgId, orgSlug, token }),
+                body: JSON.stringify({ orgId, orgSlug, token, monto }),
             })
 
             if (!prefRes.ok) throw new Error('No se pudo crear la preferencia de pago')
