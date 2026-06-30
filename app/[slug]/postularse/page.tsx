@@ -40,9 +40,9 @@ export default async function PostularsePage({
 
     const [jobs, areas, experience, availability] = await Promise.all([
         getActiveJobsByOrg(org.id),
-        getAreas(),
-        getExperience(),
-        getAvailability()
+        getAreas(org.id),
+        getExperience(org.id),
+        getAvailability(org.id)
     ])
 
     const colorBrand = org.color_primario || '#1e3a8a'

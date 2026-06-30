@@ -1,12 +1,15 @@
-import { createClientServer } from "../../supabase/server";
+import { createAdminClient } from "../../supabase/admin";
 
-export async function getExperience() {
-    const supabase = await createClientServer();
+export async function getExperience(orgId?: string) {
+    const supabase = createAdminClient();
 
-    const { data, error } = await supabase
-        .from("experience")
-        .select("*")
-        .order("description", { ascending: true });
+    let query = supabase.from("experience").select("*");
+
+    if (orgId) {
+        query = query.eq("org_id", orgId);
+    }
+
+    const { data, error } = await query.order("description", { ascending: true });
 
     if (error) {
         console.error("Error al obtener las experiencias:", error);

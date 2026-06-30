@@ -1,13 +1,17 @@
-import { createClient } from "@/lib/supabase/client"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/client";
 import { AreaInput } from "@/types/forms";
 import { Area } from "@/types/database";
 
-export async function getAreas(): Promise<Area[]> {
-    const supabase = createClient()
-    const { data, error } = await supabase
-        .from('areas')
-        .select('*')
-        .order('nombre', { ascending: true })
+export async function getAreas(orgId?: string): Promise<Area[]> {
+    const supabase = createAdminClient()
+    let query = supabase.from('areas').select('*')
+
+    if (orgId) {
+        query = query.eq('org_id', orgId)
+    }
+
+    const { data, error } = await query.order('nombre', { ascending: true })
 
     if (error) {
         console.error("Error al obtener las áreas:", error);
