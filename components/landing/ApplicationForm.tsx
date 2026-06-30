@@ -320,24 +320,20 @@ export function ApplicationForm({
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Experiencia *</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    items={experience.map((e) => ({ value: e.id, label: e.description }))}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl">
-                                            <SelectValue placeholder="Seleccioná" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
+                                <FormControl>
+                                    <select
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        value={field.value || ''}
+                                        className="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2396786f%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                                    >
+                                        <option value="" disabled>Seleccioná</option>
                                         {experience.map((e) => (
-                                            <SelectItem key={e.id} value={e.id}>
+                                            <option key={e.id} value={e.id}>
                                                 {e.description}
-                                            </SelectItem>
+                                            </option>
                                         ))}
-                                    </SelectContent>
-                                </Select>
+                                    </select>
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -349,24 +345,20 @@ export function ApplicationForm({
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Disponibilidad *</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    items={availability.map((d) => ({ value: d.id, label: d.nombre }))}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger className="h-12 rounded-xl">
-                                            <SelectValue placeholder="Seleccioná" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
+                                <FormControl>
+                                    <select
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        value={field.value || ''}
+                                        className="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2396786f%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                                    >
+                                        <option value="" disabled>Seleccioná</option>
                                         {availability.map((d) => (
-                                            <SelectItem key={d.id} value={d.id}>
+                                            <option key={d.id} value={d.id}>
                                                 {d.nombre}
-                                            </SelectItem>
+                                            </option>
                                         ))}
-                                    </SelectContent>
-                                </Select>
+                                    </select>
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -379,29 +371,20 @@ export function ApplicationForm({
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>¿A qué puesto te postulás?</FormLabel>
-                            <Select
-                                key={selectedJobId || 'none'}
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                items={[
-                                    { value: 'general', label: 'Interés General (Caza talentos)' },
-                                    ...jobs.map(job => ({ value: job.id, label: job.titulo }))
-                                ]}
-                            >
-                                <FormControl>
-                                    <SelectTrigger className="h-12 rounded-xl">
-                                        <SelectValue placeholder="Seleccioná una opción" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="general">Interés General (Caza talentos)</SelectItem>
+                            <FormControl>
+                                <select
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    value={field.value || ''}
+                                    className="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2396786f%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                                >
+                                    <option value="general">Interés General (Caza talentos)</option>
                                     {jobs.map(job => (
-                                        <SelectItem key={job.id} value={job.id}>
+                                        <option key={job.id} value={job.id}>
                                             {job.titulo}
-                                        </SelectItem>
+                                        </option>
                                     ))}
-                                </SelectContent>
-                            </Select>
+                                </select>
+                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
