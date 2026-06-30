@@ -19,7 +19,9 @@ export interface HeroContent extends SectionColors {
     title: string
     subtitle?: string
     cta_text: string
+    cta_url?: string
     cta_secondary_text?: string
+    cta_secondary_url?: string
     cta_tertiary_text?: string
     background_image?: string
 }

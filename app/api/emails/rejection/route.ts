@@ -56,9 +56,13 @@ export async function POST(req: NextRequest) {
         const actualTo = isDev && devOverride ? devOverride : candidate.email
         const subjectPrefix = isDev && devOverride ? `[TEST → ${candidate.email}] ` : ''
 
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'contacto@flowats.com.ar'
+        const fromLabel = `${org.nombre || 'FlowATS'} <${fromEmail}>`
+
         const { error: resendError } = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+            from: fromLabel,
             to: actualTo,
+            replyTo: org.email_contacto || undefined,
             subject: `${subjectPrefix}${asunto}`,
             text: cuerpo,
         })

@@ -81,7 +81,7 @@ export default async function PagoPage({
 
     return (
         <div className="container mx-auto py-12 lg:py-20">
-            <div className="max-w-md mx-auto space-y-8">
+            <div className="max-w-sm sm:px-10 md:max-w-md lg:max-w-lg mx-auto space-y-8">
                 <div className="text-center space-y-2">
                     <Lock className="size-16 text-[#472825] mx-auto" />
                     <h1 className="text-3xl font-bold tracking-tight">Finalizá tu postulación</h1>

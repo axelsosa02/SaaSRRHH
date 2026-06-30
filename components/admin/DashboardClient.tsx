@@ -248,6 +248,33 @@ export function DashboardClient({ metrics }: Props) {
                             </div>
                         )}
                     </div>
+
+                     {/* Actividad reciente */}
+                    <div className="border rounded-xl p-5 bg-card">
+                        <h2 className="text-sm font-medium mb-4">Actividad reciente</h2>
+                        {metrics.actividadReciente.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Sin actividad reciente.</p>
+                        ) : (
+                            <div className="space-y-1">
+                                {metrics.actividadReciente.map((item) => {
+                                    const config = ACTIVITY_CONFIG[item.tipo]
+                                    return (
+                                        <div key={item.id} className="flex items-start gap-3 py-2 border-b last:border-0">
+                                            <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${config.bg}`}>
+                                                {config.icon}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground flex-1 leading-relaxed pt-0.5">
+                                                {item.descripcion}
+                                            </p>
+                                            <span className="text-xs text-muted-foreground shrink-0 pt-0.5">
+                                                {timeAgo(item.fecha)}
+                                            </span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Columna derecha */}
@@ -289,32 +316,7 @@ export function DashboardClient({ metrics }: Props) {
                         )}
                     </div>
 
-                    {/* Actividad reciente */}
-                    <div className="border rounded-xl p-5 bg-card">
-                        <h2 className="text-sm font-medium mb-4">Actividad reciente</h2>
-                        {metrics.actividadReciente.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">Sin actividad reciente.</p>
-                        ) : (
-                            <div className="space-y-1">
-                                {metrics.actividadReciente.map((item) => {
-                                    const config = ACTIVITY_CONFIG[item.tipo]
-                                    return (
-                                        <div key={item.id} className="flex items-start gap-3 py-2 border-b last:border-0">
-                                            <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${config.bg}`}>
-                                                {config.icon}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground flex-1 leading-relaxed pt-0.5">
-                                                {item.descripcion}
-                                            </p>
-                                            <span className="text-xs text-muted-foreground shrink-0 pt-0.5">
-                                                {timeAgo(item.fecha)}
-                                            </span>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
-                    </div>
+                   
                 </div>
             </div>
         </div>

@@ -105,15 +105,33 @@ export async function POST(req: NextRequest) {
 
     const textBody = `¡Hola ${nombre}!\n\nGracias por postularte ${jobTitulo ? `para el puesto de ${jobTitulo}` : 'a nuestra base de talentos'}. Tu información ya está registrada y nuestro equipo la revisará con atención.\n\n¿Qué pasa ahora?\n- Revisamos tu perfil y CV.\n- Si tu perfil encaja con una búsqueda activa, te contactamos.\n- Mantenemos tu información en nuestra base de talentos.\n\n¡Mucho éxito!\nEl equipo de ${empresa}`
 
+    // Obtener configuración de la organización para el Reply-To
+    const supabase = createAdminClient()
+    let replyTo = undefined
+    if (orgId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('email_contacto')
+        .eq('id', orgId)
+        .single()
+      if (org?.email_contacto) {
+        replyTo = org.email_contacto
+      }
+    }
+
     // En desarrollo sin dominio verificado, Resend solo permite enviar al propio email.
     const isDev = process.env.NODE_ENV === 'development'
     const devOverride = process.env.DEV_EMAIL_OVERRIDE
     const actualTo = isDev && devOverride ? devOverride : email
     const subjectPrefix = isDev && devOverride ? `[TEST → ${email}] ` : ''
 
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'contacto@flowats.com.ar'
+    const fromLabel = `${orgNombre || 'FlowATS'} <${fromEmail}>`
+
     const { error: resendError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      from: fromLabel,
       to: actualTo,
+      replyTo: replyTo,
       subject: `${subjectPrefix}${asunto}`,
       html: htmlBody,
       text: textBody,
@@ -124,9 +142,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: resendError.message }, { status: 500 })
     }
 
-    // Guardar registro en la tabla emails usando admin client (bypasea RLS,
-    // ya que el postulante no tiene sesión autenticada)
-    const supabase = createAdminClient()
     const { error: dbError } = await supabase.from('emails').insert({
       candidate_id: candidateId || null,
       org_id: orgId,

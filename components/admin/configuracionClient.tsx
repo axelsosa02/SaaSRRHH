@@ -48,36 +48,44 @@ const TABS: { id: Tab; label: string }[] = [
 // ─── ESQUEMAS DE VALIDACIÓN (Zod) ──────────────────────────────────────────────
 // Se definen por separado para mantener la claridad y facilitar la inferencia de tipos.
 
+const FormLabelWithCounter = ({ label, current = 0, max, optional }: { label: React.ReactNode, current?: number, max: number, optional?: boolean }) => (
+    <div className="flex items-center justify-between pb-1">
+        <FormLabel className="pb-0!">{label} {optional && <span className="text-muted-foreground font-normal">(opcional)</span>}</FormLabel>
+        <span className="text-xs text-muted-foreground font-medium">{current}/{max}</span>
+    </div>
+)
+
 /** Esquema para datos básicos y colores de marca de la organización */
 const generalSchema = z.object({
-    nombre: z.string().min(1, 'Requerido'),
+    nombre: z.string().min(1, 'Requerido').max(100, 'Máximo 100 caracteres'),
     email_contacto: z.string().email('Email inválido'),
-    whatsapp: z.string().optional(),
+    whatsapp: z.string().max(20, 'Máximo 20 caracteres').optional(),
     color_primario: z.string().min(1, 'Requerido'),
     color_secundario: z.string().min(1, 'Requerido'),
 })
 
 const heroSchema = z.object({
-    title: z.string().min(1, 'Requerido'),
-    subtitle: z.string().optional(),
-    cta_text: z.string().min(1, 'Requerido'),
-    cta_secondary_text: z.string().optional(),
+    title: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+    subtitle: z.string().max(120, 'Máximo 120 caracteres').optional(),
+    cta_text: z.string().min(1, 'Requerido').max(20, 'Máximo 20 caracteres'),
+    cta_url: z.string().optional(),
+    cta_secondary_text: z.string().max(20, 'Máximo 20 caracteres').optional(),
     cta_secondary_url: z.string().optional(),
-    cta_tertiary_text: z.string().optional(),
+    cta_tertiary_text: z.string().max(60, 'Máximo 60 caracteres').optional(),
     background_image: z.string().optional(),
     bg_color: z.string().optional(),
     text_color: z.string().optional(),
 })
 
 const quienesSomosCardSchema = z.object({
-    title: z.string().min(1, 'Requerido'),
-    description: z.string().min(1, 'Requerido'),
+    title: z.string().min(1, 'Requerido').max(40, 'Máximo 40 caracteres'),
+    description: z.string().min(1, 'Requerido').max(150, 'Máximo 150 caracteres'),
 })
 
 const quienesSomosSchema = z.object({
-    title: z.string().min(1, 'Requerido'),
-    description: z.string().min(1, 'Requerido'),
-    description_two: z.string().optional(),
+    title: z.string().min(1, 'Requerido').max(60, 'Máximo 60 caracteres'),
+    description: z.string().min(1, 'Requerido').max(600, 'Máximo 600 caracteres'),
+    description_two: z.string().max(600, 'Máximo 600 caracteres').optional(),
     image: z.string().optional(),
     cards: z.array(quienesSomosCardSchema),
     bg_color: z.string().optional(),
@@ -85,50 +93,50 @@ const quienesSomosSchema = z.object({
 })
 
 const comoPostularseSchema = z.object({
-    title: z.string().min(1, 'Requerido'),
-    step1_titulo: z.string().min(1, 'Requerido'),
-    step1_descripcion: z.string().min(1, 'Requerido'),
-    step2_titulo: z.string().min(1, 'Requerido'),
-    step2_descripcion: z.string().min(1, 'Requerido'),
-    step3_titulo: z.string().min(1, 'Requerido'),
-    step3_descripcion: z.string().min(1, 'Requerido'),
-    step4_titulo: z.string().optional(),
-    step4_descripcion: z.string().optional(),
+    title: z.string().min(1, 'Requerido').max(60, 'Máximo 60 caracteres'),
+    step1_titulo: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+    step1_descripcion: z.string().min(1, 'Requerido').max(200, 'Máximo 200 caracteres'),
+    step2_titulo: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+    step2_descripcion: z.string().min(1, 'Requerido').max(200, 'Máximo 200 caracteres'),
+    step3_titulo: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+    step3_descripcion: z.string().min(1, 'Requerido').max(200, 'Máximo 200 caracteres'),
+    step4_titulo: z.string().max(50, 'Máximo 50 caracteres').optional(),
+    step4_descripcion: z.string().max(200, 'Máximo 200 caracteres').optional(),
     bg_color: z.string().optional(),
     text_color: z.string().optional(),
 })
 
 const contactoSchema = z.object({
     email: z.string().email('Email inválido'),
-    telefono: z.string().optional(),
-    direccion: z.string().optional(),
-    horario: z.string().optional(),
-    footer_texto: z.string().optional(),
+    telefono: z.string().max(30, 'Máximo 30 caracteres').optional(),
+    direccion: z.string().max(100, 'Máximo 100 caracteres').optional(),
+    horario: z.string().max(100, 'Máximo 100 caracteres').optional(),
+    footer_texto: z.string().max(300, 'Máximo 300 caracteres').optional(),
     bg_color: z.string().optional(),
     text_color: z.string().optional(),
 })
 
 const serviciosItemSchema = z.object({
-    title: z.string().min(1, 'Requerido'),
-    description: z.string().min(1, 'Requerido'),
+    title: z.string().min(1, 'Requerido').max(60, 'Máximo 60 caracteres'),
+    description: z.string().min(1, 'Requerido').max(300, 'Máximo 300 caracteres'),
     image: z.string().optional(),
-    cta_text: z.string().optional(),
+    cta_text: z.string().max(30, 'Máximo 30 caracteres').optional(),
     cta_url: z.string().optional(),
 })
 
 const serviciosSchema = z.object({
-    title: z.string().min(1, 'Requerido'),
-    subtitle: z.string().optional(),
+    title: z.string().min(1, 'Requerido').max(60, 'Máximo 60 caracteres'),
+    subtitle: z.string().max(200, 'Máximo 200 caracteres').optional(),
     items: z.array(serviciosItemSchema).min(1, 'Agregá al menos un servicio'),
     bg_color: z.string().optional(),
     text_color: z.string().optional(),
 })
 
 const emailsSchema = z.object({
-    mail_bienvenida_asunto: z.string().min(1, 'Requerido'),
-    mail_bienvenida: z.string().min(1, 'Requerido'),
-    mail_rechazo_asunto: z.string().min(1, 'Requerido'),
-    mail_rechazo: z.string().min(1, 'Requerido'),
+    mail_bienvenida_asunto: z.string().min(1, 'Requerido').max(100, 'Máximo 100 caracteres'),
+    mail_bienvenida: z.string().min(1, 'Requerido').max(2000, 'Máximo 2000 caracteres'),
+    mail_rechazo_asunto: z.string().min(1, 'Requerido').max(100, 'Máximo 100 caracteres'),
+    mail_rechazo: z.string().min(1, 'Requerido').max(2000, 'Máximo 2000 caracteres'),
 })
 
 // ─── Tipos inferidos ──────────────────────────────────────────────────────────
@@ -182,6 +190,10 @@ export function ConfiguracionClient({ org, sections }: Props) {
     )
     const [savingNav, setSavingNav] = useState(false)
 
+    // Estado para los links de cortesía generados
+    const [generatedLink, setGeneratedLink] = useState<string>('')
+    const [generatingLink, setGeneratingLink] = useState(false)
+
     // Estado MP (leído del server, actualizado por el widget)
     const mpConnected = org.mp_connected ?? false
     const mpUserId = org.mp_user_id ?? null
@@ -216,6 +228,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
             title: getStr(hero, 'title'),
             subtitle: getStr(hero, 'subtitle'),
             cta_text: getStr(hero, 'cta_text') || 'Quiero postularme',
+            cta_url: getStr(hero, 'cta_url'),
             cta_secondary_text: getStr(hero, 'cta_secondary_text'),
             cta_secondary_url: getStr(hero, 'cta_secondary_url'),
             cta_tertiary_text: getStr(hero, 'cta_tertiary_text'),
@@ -572,222 +585,290 @@ export function ConfiguracionClient({ org, sections }: Props) {
             {/* ── TAB GENERAL ──────────────────────────────────────────────── */}
             {activeTab === 'general' && (
                 <>
-                <Form {...generalForm}>
-                    <form onSubmit={generalForm.handleSubmit(onSaveGeneral)} className="flex flex-col gap-4">
-                        <SectionCard title="Datos de la organización" desc="Información general usada en toda la plataforma.">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={generalForm.control} name="nombre" render={({ field }) => (
-                                    <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                                )} />
-                                <FormField control={generalForm.control} name="email_contacto" render={({ field }) => (
-                                    <FormItem><FormLabel>Email de contacto</FormLabel><FormControl><Input {...field} type="email" /></FormControl><FormMessage /></FormItem>
-                                )} />
-                            </div>
-                            <FormField control={generalForm.control} name="whatsapp" render={({ field }) => (
-                                <FormItem><FormLabel>WhatsApp <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="+54 341 555 1234" /></FormControl></FormItem>
-                            )} />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={generalForm.control} name="color_primario" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Color primario</FormLabel>
-                                        <FormControl>
-                                            <div className="flex items-center gap-2">
-                                                <input type="color" value={field.value} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
-                                                <Input {...field} placeholder="#1E3A5F" />
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <FormField control={generalForm.control} name="color_secundario" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Color secundario</FormLabel>
-                                        <FormControl>
-                                            <div className="flex items-center gap-2">
-                                                <input type="color" value={field.value} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
-                                                <Input {...field} placeholder="#378ADD" />
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                            </div>
-                        </SectionCard>
-
-                        <SectionCard title="Logo" desc="PNG, SVG, JPG o WEBP · máx. 2 MB">
-                            <label className="cursor-pointer block">
-                                <div className="border-2 border-dashed rounded-xl p-8 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
-                                    {uploadingLogo ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                                            <p className="text-sm text-muted-foreground">Subiendo logo...</p>
-                                        </div>
-                                    ) : logoUrl ? (
-                                        <div className="flex flex-col items-center gap-3">
-                                            <img src={logoUrl} alt="Logo" className="h-16 object-contain" />
-                                            <p className="text-xs text-primary">Click para reemplazar</p>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                                                <ImageIcon className="h-6 w-6 text-primary" />
-                                            </div>
-                                            <p className="text-sm font-medium">Subir logo</p>
-                                            <p className="text-xs text-muted-foreground">PNG · SVG · JPG · máx. 2 MB</p>
-                                        </div>
-                                    )}
+                    <Form {...generalForm}>
+                        <form onSubmit={generalForm.handleSubmit(onSaveGeneral)} className="flex flex-col gap-4">
+                            <SectionCard title="Datos de la organización" desc="Información general usada en toda la plataforma.">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField control={generalForm.control} name="nombre" render={({ field }) => (
+                                        <FormItem><FormLabelWithCounter label="Nombre" current={field.value?.length} max={100} /><FormControl><Input {...field} maxLength={100} /></FormControl><FormMessage /></FormItem>
+                                    )} />
+                                    <FormField control={generalForm.control} name="email_contacto" render={({ field }) => (
+                                        <FormItem><FormLabel>Email de contacto</FormLabel><FormControl><Input {...field} type="email" /></FormControl><FormMessage /></FormItem>
+                                    )} />
                                 </div>
-                                <input type="file" className="hidden" accept=".png,.svg,.jpg,.jpeg,.webp" onChange={handleLogoUpload} disabled={uploadingLogo} />
-                            </label>
-                        </SectionCard>
+                                <FormField control={generalForm.control} name="whatsapp" render={({ field }) => (
+                                    <FormItem><FormLabelWithCounter label="WhatsApp" current={field.value?.length} max={20} optional /><FormControl><Input {...field} maxLength={20} placeholder="+54 341 555 1234" /></FormControl></FormItem>
+                                )} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField control={generalForm.control} name="color_primario" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Color primario</FormLabel>
+                                            <FormControl>
+                                                <div className="flex items-center gap-2">
+                                                    <input type="color" value={field.value} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                    <Input {...field} placeholder="#1E3A5F" />
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={generalForm.control} name="color_secundario" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Color secundario</FormLabel>
+                                            <FormControl>
+                                                <div className="flex items-center gap-2">
+                                                    <input type="color" value={field.value} onChange={e => field.onChange(e.target.value)} className="w-9 h-9 rounded-md border cursor-pointer" />
+                                                    <Input {...field} placeholder="#378ADD" />
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                </div>
+                            </SectionCard>
 
-                        <FormActions form={generalForm} onReset={() => generalForm.reset()} />
-                    </form>
-                </Form>
-
-                {/* ── Card de navegación ── */}
-                <SectionCard title="Menú de navegación" desc="Elegí qué ítems se muestran en la barra de navegación de tu landing.">
-                    <div className="flex flex-col gap-3">
-                        {ALL_NAV_ITEMS.map(item => (
-                            <label key={item.id} className="flex items-center gap-3 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={navItemsSelected.includes(item.id)}
-                                    onChange={e => {
-                                        if (e.target.checked) {
-                                            setNavItemsSelected(prev => [...prev, item.id])
-                                        } else {
-                                            setNavItemsSelected(prev => prev.filter(id => id !== item.id))
-                                        }
-                                    }}
-                                    className="h-4 w-4 rounded border-gray-300 text-primary"
-                                />
-                                <span className="text-sm font-medium">{item.label}</span>
-                            </label>
-                        ))}
-                    </div>
-                    <div className="flex justify-end mt-4">
-                        <Button onClick={onSaveNavItems} disabled={savingNav}>
-                            {savingNav && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                            Guardar navegación
-                        </Button>
-                    </div>
-                </SectionCard>
-
-                {/* ── Card de cobro (fuera del form para guardado independiente) ── */}
-                <SectionCard
-                    title="Cobro por postulación"
-                    desc="Activá esta opción si querés cobrar un arancel a los candidatos antes de acceder al formulario de postulación (via Mercado Pago)."
-                >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
-                                cobroPostulacion ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                            }`}>
-                                <CreditCard className="h-4 w-4" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {cobroPostulacion ? 'Pago requerido' : 'Acceso gratuito'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    {cobroPostulacion
-                                        ? `Los candidatos deben abonar $${montoPostulacion.toLocaleString('es-AR')} ARS para postularse.`
-                                        : 'Los candidatos acceden al formulario directamente sin pagar.'}
-                                </p>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            disabled={savingCobro}
-                            onClick={async () => {
-                                const nuevoValor = !cobroPostulacion
-                                setSavingCobro(true)
-                                try {
-                                    await updateOrgPago(nuevoValor, montoPostulacion)
-                                    setCobroPostulacion(nuevoValor)
-                                    toast.success(nuevoValor ? 'Pago habilitado' : 'Acceso gratuito habilitado')
-                                } catch {
-                                    toast.error('Error al guardar')
-                                } finally {
-                                    setSavingCobro(false)
-                                }
-                            }}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 ${
-                                cobroPostulacion ? 'bg-primary' : 'bg-muted-foreground/30'
-                            }`}
-                            role="switch"
-                            aria-checked={cobroPostulacion}
-                        >
-                            {savingCobro ? (
-                                <Loader2 className="absolute left-1/2 -translate-x-1/2 h-3 w-3 animate-spin text-white" />
-                            ) : (
-                                <span
-                                    className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-                                        cobroPostulacion ? 'translate-x-6' : 'translate-x-1'
-                                    }`}
-                                />
-                            )}
-                        </button>
-                    </div>
-
-                    {cobroPostulacion && (
-                        <div className="mt-4 pt-4 border-t border-border space-y-3">
-                            <div>
-                                <label htmlFor="monto-postulacion" className="text-sm font-medium">
-                                    Monto a cobrar (ARS)
-                                </label>
-                                <p className="text-xs text-muted-foreground mb-2">
-                                    Ingresá el monto que los candidatos deberán pagar para acceder al formulario de postulación.
-                                </p>
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                                        <Input
-                                            id="monto-postulacion"
-                                            type="number"
-                                            min={100}
-                                            step={100}
-                                            value={montoPostulacion}
-                                            onChange={(e) => setMontoPostulacion(Number(e.target.value))}
-                                            className="pl-7"
-                                        />
+                            <SectionCard title="Logo" desc="PNG, SVG, JPG o WEBP · máx. 2 MB">
+                                <label className="cursor-pointer block">
+                                    <div className="border-2 border-dashed rounded-xl p-8 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                                        {uploadingLogo ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                                <p className="text-sm text-muted-foreground">Subiendo logo...</p>
+                                            </div>
+                                        ) : logoUrl ? (
+                                            <div className="flex flex-col items-center gap-3">
+                                                <img src={logoUrl} alt="Logo" className="h-16 object-contain" />
+                                                <p className="text-xs text-primary">Click para reemplazar</p>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                                                    <ImageIcon className="h-6 w-6 text-primary" />
+                                                </div>
+                                                <p className="text-sm font-medium">Subir logo</p>
+                                                <p className="text-xs text-muted-foreground">PNG · SVG · JPG · máx. 2 MB</p>
+                                            </div>
+                                        )}
                                     </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        disabled={savingCobro}
-                                        onClick={async () => {
-                                            if (montoPostulacion < 100) {
-                                                toast.error('El monto mínimo es $100 ARS')
-                                                return
-                                            }
-                                            setSavingCobro(true)
-                                            try {
-                                                await updateOrgPago(cobroPostulacion, montoPostulacion)
-                                                toast.success(`Monto actualizado a $${montoPostulacion.toLocaleString('es-AR')} ARS`)
-                                            } catch {
-                                                toast.error('Error al guardar el monto')
-                                            } finally {
-                                                setSavingCobro(false)
+                                    <input type="file" className="hidden" accept=".png,.svg,.jpg,.jpeg,.webp" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                                </label>
+                            </SectionCard>
+
+                            <FormActions form={generalForm} onReset={() => generalForm.reset()} />
+                        </form>
+                    </Form>
+
+                    {/* ── Card de navegación ── */}
+                    <SectionCard title="Menú de navegación" desc="Elegí qué ítems se muestran en la barra de navegación de tu landing.">
+                        <div className="flex flex-col gap-3">
+                            {ALL_NAV_ITEMS.map(item => (
+                                <label key={item.id} className="flex items-center gap-3 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={navItemsSelected.includes(item.id)}
+                                        onChange={e => {
+                                            if (e.target.checked) {
+                                                setNavItemsSelected(prev => [...prev, item.id])
+                                            } else {
+                                                setNavItemsSelected(prev => prev.filter(id => id !== item.id))
                                             }
                                         }}
-                                    >
-                                        {savingCobro ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar monto'}
-                                    </Button>
+                                        className="h-4 w-4 rounded border-gray-300 text-primary"
+                                    />
+                                    <span className="text-sm font-medium">{item.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <div className="flex justify-end mt-4">
+                            <Button onClick={onSaveNavItems} disabled={savingNav}>
+                                {savingNav && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                Guardar navegación
+                            </Button>
+                        </div>
+                    </SectionCard>
+
+                    {/* ── Card de cobro (fuera del form para guardado independiente) ── */}
+                    <SectionCard
+                        title="Cobro por postulación"
+                        desc="Activá esta opción si querés cobrar un arancel a los candidatos antes de acceder al formulario de postulación (via Mercado Pago)."
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${cobroPostulacion ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                                    }`}>
+                                    <CreditCard className="h-4 w-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">
+                                        {cobroPostulacion ? 'Pago requerido' : 'Acceso gratuito'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {cobroPostulacion
+                                            ? `Los candidatos deben abonar $${montoPostulacion.toLocaleString('es-AR')} ARS para postularse.`
+                                            : 'Los candidatos acceden al formulario directamente sin pagar.'}
+                                    </p>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                disabled={savingCobro}
+                                onClick={async () => {
+                                    const nuevoValor = !cobroPostulacion
+                                    setSavingCobro(true)
+                                    try {
+                                        await updateOrgPago(nuevoValor, montoPostulacion)
+                                        setCobroPostulacion(nuevoValor)
+                                        toast.success(nuevoValor ? 'Pago habilitado' : 'Acceso gratuito habilitado')
+                                    } catch {
+                                        toast.error('Error al guardar')
+                                    } finally {
+                                        setSavingCobro(false)
+                                    }
+                                }}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 ${cobroPostulacion ? 'bg-primary' : 'bg-muted-foreground/30'
+                                    }`}
+                                role="switch"
+                                aria-checked={cobroPostulacion}
+                            >
+                                {savingCobro ? (
+                                    <Loader2 className="absolute left-1/2 -translate-x-1/2 h-3 w-3 animate-spin text-white" />
+                                ) : (
+                                    <span
+                                        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${cobroPostulacion ? 'translate-x-6' : 'translate-x-1'
+                                            }`}
+                                    />
+                                )}
+                            </button>
                         </div>
-                    )}
-                </SectionCard>
 
-                {/* ── Widget de Mercado Pago ── */}
-                {cobroPostulacion && (
-                    <MercadoPagoConnect
-                        mpConnected={mpConnected}
-                        mpUserId={mpUserId}
-                    />
-                )}
+                        {cobroPostulacion && (
+                            <div className="mt-4 pt-4 border-t border-border space-y-3">
+                                <div>
+                                    <label htmlFor="monto-postulacion" className="text-sm font-medium">
+                                        Monto a cobrar (ARS)
+                                    </label>
+                                    <p className="text-xs text-muted-foreground mb-2">
+                                        Ingresá el monto que los candidatos deberán pagar para acceder al formulario de postulación.
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                                            <Input
+                                                id="monto-postulacion"
+                                                type="number"
+                                                min={100}
+                                                step={100}
+                                                value={montoPostulacion}
+                                                onChange={(e) => setMontoPostulacion(Number(e.target.value))}
+                                                className="pl-7"
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={savingCobro}
+                                            onClick={async () => {
+                                                if (montoPostulacion < 100) {
+                                                    toast.error('El monto mínimo es $100 ARS')
+                                                    return
+                                                }
+                                                setSavingCobro(true)
+                                                try {
+                                                    await updateOrgPago(cobroPostulacion, montoPostulacion)
+                                                    toast.success(`Monto actualizado a $${montoPostulacion.toLocaleString('es-AR')} ARS`)
+                                                } catch {
+                                                    toast.error('Error al guardar el monto')
+                                                } finally {
+                                                    setSavingCobro(false)
+                                                }
+                                            }}
+                                        >
+                                            {savingCobro ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar monto'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </SectionCard>
+
+                    {/* ── Widget de Mercado Pago ── */}
+                    {cobroPostulacion && (
+                        <MercadoPagoConnect
+                            mpConnected={mpConnected}
+                            mpUserId={mpUserId}
+                        />
+                    )}
+
+                    {/* ── Links de cortesía (Bypass de pago) ── */}
+                    {cobroPostulacion && (
+                        <SectionCard
+                            title="Links de postulación de cortesía (Bypass de pago)"
+                            desc="Si un candidato ya pagó pero tuvo un problema técnico (como cerrar la ventana o perder la sesión), podés generarle un link único para que se postule de forma gratuita. Este link es de un solo uso y expira en 24 horas."
+                        >
+                            <div className="space-y-4">
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        onClick={async () => {
+                                            setGeneratingLink(true)
+                                            try {
+                                                const res = await fetch('/api/admin/payments/free-token', { method: 'POST' })
+                                                const data = await res.json()
+                                                if (data.success) {
+                                                    const url = `${window.location.origin}/${data.slug}/postularse?token=${data.token}`
+                                                    setGeneratedLink(url)
+                                                    toast.success('Link generado exitosamente')
+                                                } else {
+                                                    toast.error(data.error || 'Error al generar link')
+                                                }
+                                            } catch {
+                                                toast.error('Error de red al generar link')
+                                            } finally {
+                                                setGeneratingLink(false)
+                                            }
+                                        }}
+                                        disabled={generatingLink}
+                                        className="w-fit"
+                                    >
+                                        {generatingLink && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                        Generar link de cortesía
+                                    </Button>
+                                    {generatedLink && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => {
+                                                setGeneratedLink('')
+                                            }}
+                                        >
+                                            Limpiar
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {generatedLink && (
+                                    <div className="flex items-center gap-2 p-3 bg-muted rounded-xl border">
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            value={generatedLink}
+                                            className="flex-1 bg-transparent text-xs outline-none select-all font-mono"
+                                        />
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(generatedLink)
+                                                toast.success('Copiado al portapapeles')
+                                            }}
+                                        >
+                                            Copiar
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </SectionCard>
+                    )}
                 </>
             )}
 
@@ -797,25 +878,30 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     <form onSubmit={heroForm.handleSubmit(onSaveHero)} className="flex flex-col gap-4">
                         <SectionCard title="Sección Hero" desc="Primera sección visible de la landing. Lo primero que ve el candidato.">
                             <FormField control={heroForm.control} name="title" render={({ field }) => (
-                                <FormItem><FormLabel>Título principal</FormLabel><FormControl><Input {...field} placeholder="Conectamos el talento con las mejores oportunidades" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Título principal" current={field.value?.length} max={50} /><FormControl><Input {...field} maxLength={50} placeholder="Conectamos el talento con las mejores oportunidades" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={heroForm.control} name="subtitle" render={({ field }) => (
-                                <FormItem><FormLabel>Subtítulo</FormLabel><FormControl><Textarea {...field} rows={2} placeholder="Somos especialistas en reclutamiento..." /></FormControl></FormItem>
+                                <FormItem><FormLabelWithCounter label="Subtítulo" current={field.value?.length} max={120} /><FormControl><Textarea {...field} maxLength={120} placeholder="Somos especialistas en reclutamiento..." /></FormControl></FormItem>
                             )} />
                             <FormField control={heroForm.control} name="cta_tertiary_text" render={({ field }) => (
-                                <FormItem><FormLabel>Subtítulo 2</FormLabel><FormControl><Textarea {...field} rows={2} placeholder="Consultora de Recursos Humanos" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Subtítulo 2" current={field.value?.length} max={60} /><FormControl><Textarea {...field} maxLength={60} placeholder="Consultora de Recursos Humanos" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField control={heroForm.control} name="cta_text" render={({ field }) => (
-                                    <FormItem><FormLabel>Texto botón principal</FormLabel><FormControl><Input {...field} placeholder="Quiero postularme" /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabelWithCounter label="Texto botón principal" current={field.value?.length} max={30} /><FormControl><Input {...field} maxLength={30} placeholder="Quiero postularme" /></FormControl><FormMessage /></FormItem>
                                 )} />
-                                <FormField control={heroForm.control} name="cta_secondary_text" render={({ field }) => (
-                                    <FormItem><FormLabel>Texto botón secundario <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="Quiénes somos" /></FormControl><FormMessage /></FormItem>
+                                <FormField control={heroForm.control} name="cta_url" render={({ field }) => (
+                                    <FormItem><FormLabel>URL botón principal</FormLabel><FormControl><Input {...field} placeholder="https://... o #seccion" /></FormControl><FormMessage /></FormItem>
                                 )} />
                             </div>
-                            <FormField control={heroForm.control} name="cta_secondary_url" render={({ field }) => (
-                                <FormItem><FormLabel>URL botón secundario <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://... o #seccion" /></FormControl></FormItem>
-                            )} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField control={heroForm.control} name="cta_secondary_text" render={({ field }) => (
+                                    <FormItem><FormLabelWithCounter label="Texto botón secundario" current={field.value?.length} max={30} optional /><FormControl><Input {...field} maxLength={30} placeholder="Quiénes somos" /></FormControl><FormMessage /></FormItem>
+                                )} />
+                                <FormField control={heroForm.control} name="cta_secondary_url" render={({ field }) => (
+                                    <FormItem><FormLabel>URL botón secundario <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://... o #seccion (por defecto #vacantes)" /></FormControl><FormMessage /></FormItem>
+                                )} />
+                            </div>
                             <FormField control={heroForm.control} name="background_image" render={({ field }) => (
                                 <FormItem><FormLabel>URL de imagen de fondo <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl></FormItem>
                             )} />
@@ -855,13 +941,13 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     <form onSubmit={quienesSomosForm.handleSubmit(onSaveQuienesSomos)} className="flex flex-col gap-4">
                         <SectionCard title="Quiénes somos" desc="Sección informativa sobre la consultora.">
                             <FormField control={quienesSomosForm.control} name="title" render={({ field }) => (
-                                <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} placeholder="Más de 10 años conectando talento" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Título" current={field.value?.length} max={60} /><FormControl><Input {...field} maxLength={60} placeholder="Más de 10 años conectando talento" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={quienesSomosForm.control} name="description" render={({ field }) => (
-                                <FormItem><FormLabel>Subtitulo</FormLabel><FormControl><Textarea {...field} rows={4} placeholder="Somos una consultora especializada en..." /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Subtitulo" current={field.value?.length} max={600} /><FormControl><Textarea {...field} maxLength={600} rows={4} placeholder="Somos una consultora especializada en..." /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={quienesSomosForm.control} name="description_two" render={({ field }) => (
-                                <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={4} placeholder="Somos una consultora especializada en..." /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Descripción" current={field.value?.length} max={600} /><FormControl><Textarea {...field} maxLength={600} rows={4} placeholder="Somos una consultora especializada en..." /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={quienesSomosForm.control} name="image" render={({ field }) => (
                                 <FormItem><FormLabel>URL de imagen <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl></FormItem>
@@ -874,14 +960,14 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                         control={quienesSomosForm.control}
                                         name={`cards.${index}.title`}
                                         render={({ field }) => (
-                                            <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} placeholder="Título de la card" /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabelWithCounter label="Título" current={field.value?.length} max={40} /><FormControl><Input {...field} maxLength={40} placeholder="Título de la card" /></FormControl><FormMessage /></FormItem>
                                         )}
                                     />
                                     <FormField
                                         control={quienesSomosForm.control}
                                         name={`cards.${index}.description`}
                                         render={({ field }) => (
-                                            <FormItem><FormLabel>Descripción</FormLabel><FormControl><Input {...field} placeholder="Descripción de la card" /></FormControl><FormMessage /></FormItem>
+                                            <FormItem><FormLabelWithCounter label="Descripción" current={field.value?.length} max={150} /><FormControl><Input {...field} maxLength={150} placeholder="Descripción de la card" /></FormControl><FormMessage /></FormItem>
                                         )}
                                     />
                                     <Button
@@ -940,17 +1026,34 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     <form onSubmit={comoPostularseForm.handleSubmit(onSaveComoPostularse)} className="flex flex-col gap-4">
                         <SectionCard title="Cómo postularse" desc="Los pasos que ve el candidato antes de postularse.">
                             <FormField control={comoPostularseForm.control} name="title" render={({ field }) => (
-                                <FormItem><FormLabel>Título de la sección</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                <FormItem>
+                                    <FormLabelWithCounter label="Título de la sección" current={field.value?.length} max={60} />
+                                    <FormControl>
+                                        <Input {...field} maxLength={60} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )} />
                         </SectionCard>
 
                         {[1, 2, 3, 4].map(n => (
                             <SectionCard key={n} title={`Paso ${n}${n === 4 ? ' (opcional)' : ''}`}>
                                 <FormField control={comoPostularseForm.control} name={`step${n}_titulo` as any} render={({ field }) => (
-                                    <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem>
+                                        <FormLabelWithCounter label="Título" current={field.value?.length} max={50} />
+                                        <FormControl>
+                                            <Input {...field} maxLength={50} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                 )} />
                                 <FormField control={comoPostularseForm.control} name={`step${n}_descripcion` as any} render={({ field }) => (
-                                    <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={2} /></FormControl></FormItem>
+                                    <FormItem>
+                                        <FormLabelWithCounter label="Descripción" current={field.value?.length} max={200} />
+                                        <FormControl>
+                                            <Textarea {...field} maxLength={200} rows={2} />
+                                        </FormControl>
+                                    </FormItem>
                                 )} />
                             </SectionCard>
                         ))}
@@ -995,10 +1098,10 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             desc="Presentá los servicios o propuestas de valor con imagen, título, descripción y botón de acción."
                         >
                             <FormField control={serviciosForm.control} name="title" render={({ field }) => (
-                                <FormItem><FormLabel>Título de la sección</FormLabel><FormControl><Input {...field} placeholder="Nuestros Servicios" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Título de la sección" current={field.value?.length} max={60} /><FormControl><Input {...field} maxLength={60} placeholder="Nuestros Servicios" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={serviciosForm.control} name="subtitle" render={({ field }) => (
-                                <FormItem><FormLabel>Subtítulo <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Textarea {...field} rows={2} placeholder="Descripción general de los servicios..." /></FormControl></FormItem>
+                                <FormItem><FormLabelWithCounter label="Subtítulo" optional current={field.value?.length} max={200} /><FormControl><Textarea {...field} maxLength={200} rows={2} placeholder="Descripción general de los servicios..." /></FormControl></FormItem>
                             )} />
                         </SectionCard>
 
@@ -1010,7 +1113,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             >
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField control={serviciosForm.control} name={`items.${index}.title`} render={({ field }) => (
-                                        <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} placeholder="Nombre del servicio" /></FormControl><FormMessage /></FormItem>
+                                        <FormItem><FormLabelWithCounter label="Título" current={field.value?.length} max={60} /><FormControl><Input {...field} maxLength={60} placeholder="Nombre del servicio" /></FormControl><FormMessage /></FormItem>
                                     )} />
                                     <FormField
                                         control={serviciosForm.control}
@@ -1030,11 +1133,11 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                     />
                                 </div>
                                 <FormField control={serviciosForm.control} name={`items.${index}.description`} render={({ field }) => (
-                                    <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={3} placeholder="Descripción del servicio..." /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabelWithCounter label="Descripción" current={field.value?.length} max={300} /><FormControl><Textarea {...field} maxLength={300} rows={3} placeholder="Descripción del servicio..." /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormField control={serviciosForm.control} name={`items.${index}.cta_text`} render={({ field }) => (
-                                        <FormItem><FormLabel>Texto del botón <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="Ver más" /></FormControl></FormItem>
+                                        <FormItem><FormLabelWithCounter label="Texto del botón" optional current={field.value?.length} max={30} /><FormControl><Input {...field} maxLength={30} placeholder="Ver más" /></FormControl></FormItem>
                                     )} />
                                     <FormField control={serviciosForm.control} name={`items.${index}.cta_url`} render={({ field }) => (
                                         <FormItem><FormLabel>URL del botón <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="https://... o #seccion" /></FormControl></FormItem>
@@ -1104,20 +1207,20 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                     <FormItem><FormLabel>Email</FormLabel><FormControl><Input {...field} type="email" /></FormControl><FormMessage /></FormItem>
                                 )} />
                                 <FormField control={contactoForm.control} name="telefono" render={({ field }) => (
-                                    <FormItem><FormLabel>Teléfono <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                    <FormItem><FormLabelWithCounter label="Teléfono" optional current={field.value?.length} max={30} /><FormControl><Input {...field} maxLength={30} /></FormControl></FormItem>
                                 )} />
                                 <FormField control={contactoForm.control} name="direccion" render={({ field }) => (
-                                    <FormItem><FormLabel>Dirección <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                                    <FormItem><FormLabelWithCounter label="Dirección" optional current={field.value?.length} max={100} /><FormControl><Input {...field} maxLength={100} /></FormControl></FormItem>
                                 )} />
                                 <FormField control={contactoForm.control} name="horario" render={({ field }) => (
-                                    <FormItem><FormLabel>Horario <span className="text-muted-foreground">(opcional)</span></FormLabel><FormControl><Input {...field} placeholder="Lun–Vie 9:00 a 18:00" /></FormControl></FormItem>
+                                    <FormItem><FormLabelWithCounter label="Horario" optional current={field.value?.length} max={100} /><FormControl><Input {...field} maxLength={100} placeholder="Lun–Vie 9:00 a 18:00" /></FormControl></FormItem>
                                 )} />
                             </div>
                         </SectionCard>
 
                         <SectionCard title="Footer" desc="Texto que aparece al pie de la landing.">
                             <FormField control={contactoForm.control} name="footer_texto" render={({ field }) => (
-                                <FormItem><FormLabel>Texto del footer</FormLabel><FormControl><Input {...field} placeholder={`© ${new Date().getFullYear()} ${org.nombre}`} /></FormControl></FormItem>
+                                <FormItem><FormLabelWithCounter label="Texto del footer" current={field.value?.length} max={300} /><FormControl><Input {...field} maxLength={300} placeholder={`© ${new Date().getFullYear()} ${org.nombre}`} /></FormControl></FormItem>
                             )} />
                         </SectionCard>
 
@@ -1165,10 +1268,10 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                 Usá <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-xs">[nombre]</code> para personalizar el mensaje.
                             </p>
                             <FormField control={emailsForm.control} name="mail_bienvenida_asunto" render={({ field }) => (
-                                <FormItem><FormLabel>Asunto</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Asunto" current={field.value?.length} max={100} /><FormControl><Input {...field} maxLength={100} /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={emailsForm.control} name="mail_bienvenida" render={({ field }) => (
-                                <FormItem><FormLabel>Cuerpo del mensaje</FormLabel><FormControl><Textarea {...field} rows={6} className="resize-none font-mono text-xs" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Cuerpo del mensaje" current={field.value?.length} max={2000} /><FormControl><Textarea {...field} maxLength={2000} rows={6} className="resize-none font-mono text-xs" /></FormControl><FormMessage /></FormItem>
                             )} />
                         </SectionCard>
 
@@ -1180,10 +1283,10 @@ export function ConfiguracionClient({ org, sections }: Props) {
                                 Usá <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-xs">[nombre]</code> para personalizar el mensaje.
                             </p>
                             <FormField control={emailsForm.control} name="mail_rechazo_asunto" render={({ field }) => (
-                                <FormItem><FormLabel>Asunto</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Asunto" current={field.value?.length} max={100} /><FormControl><Input {...field} maxLength={100} /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={emailsForm.control} name="mail_rechazo" render={({ field }) => (
-                                <FormItem><FormLabel>Cuerpo del mensaje</FormLabel><FormControl><Textarea {...field} rows={6} className="resize-none font-mono text-xs" /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabelWithCounter label="Cuerpo del mensaje" current={field.value?.length} max={2000} /><FormControl><Textarea {...field} maxLength={2000} rows={6} className="resize-none font-mono text-xs" /></FormControl><FormMessage /></FormItem>
                             )} />
                         </SectionCard>
 
