@@ -28,6 +28,7 @@ import { createCandidate } from '@/lib/services/createCandidate'
 import { Loader2, Upload, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { checkCandidateLimit } from '@/lib/services/plan-limits'
+import { NativeSelect } from '../ui/NativeSelect'
 
 const formSchema = z.object({
     nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -321,10 +322,10 @@ export function ApplicationForm({
                             <FormItem>
                                 <FormLabel>Experiencia *</FormLabel>
                                 <FormControl>
-                                    <select
+                                    <NativeSelect
                                         onChange={(e) => field.onChange(e.target.value)}
                                         value={field.value || ''}
-                                        className="block h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2396786f%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                                        className="block h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10"
                                     >
                                         <option value="" disabled>Seleccioná</option>
                                         {experience.map((e) => (
@@ -332,7 +333,7 @@ export function ApplicationForm({
                                                 {e.description}
                                             </option>
                                         ))}
-                                    </select>
+                                    </NativeSelect>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -346,10 +347,10 @@ export function ApplicationForm({
                             <FormItem>
                                 <FormLabel>Disponibilidad *</FormLabel>
                                 <FormControl>
-                                    <select
+                                    <NativeSelect
                                         onChange={(e) => field.onChange(e.target.value)}
                                         value={field.value || ''}
-                                        className="block h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2396786f%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                                        className="block h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10"
                                     >
                                         <option value="" disabled>Seleccioná</option>
                                         {availability.map((d) => (
@@ -357,7 +358,7 @@ export function ApplicationForm({
                                                 {d.nombre}
                                             </option>
                                         ))}
-                                    </select>
+                                    </NativeSelect>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -372,10 +373,10 @@ export function ApplicationForm({
                         <FormItem>
                             <FormLabel>¿A qué puesto te postulás?</FormLabel>
                             <FormControl>
-                                <select
+                                <NativeSelect
                                     onChange={(e) => field.onChange(e.target.value)}
                                     value={field.value || ''}
-                                    className="block h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2396786f%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><polyline points=%226 9 12 15 18 9%22></polyline></svg>')] bg-[length:1.25rem] bg-[right_0.75rem_center] bg-no-repeat"
+                                    className="block h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-[#472825] shadow-sm outline-none focus:border-[#472825] focus:ring-1 focus:ring-[#472825] appearance-none cursor-pointer pr-10"
                                 >
                                     <option value="general">Interés General (Caza talentos)</option>
                                     {jobs.map(job => (
@@ -383,7 +384,7 @@ export function ApplicationForm({
                                             {job.titulo}
                                         </option>
                                     ))}
-                                </select>
+                                </NativeSelect>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
