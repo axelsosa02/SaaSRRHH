@@ -12,15 +12,15 @@ export interface Area {
 export interface Experience {
     id: string
     org_id: string
-    description: string
-    created_at: string
+    description: string | null
+    created_at: string | null
 }
 
 export interface Availability {
     id: string
     org_id: string
-    nombre: string
-    created_at: string
+    nombre: string | null
+    created_at: string | null
 }
 
 export type CandidateDB = {

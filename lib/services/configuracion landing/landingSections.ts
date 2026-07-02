@@ -27,7 +27,7 @@ export async function upsertSection(
             {
                 org_id: profile.org_id,
                 type,
-                content,
+                content: content as any,
                 order,
                 is_active: true,
             },
@@ -51,10 +51,12 @@ export async function toggleSection(type: SectionType, is_active: boolean) {
         .eq('id', userData.user.id)
         .single()
 
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
+
     const { error } = await supabase
         .from('landing_sections')
         .update({ is_active })
-        .eq('org_id', profile?.org_id)
+        .eq('org_id', profile.org_id)
         .eq('type', type)
 
     if (error) throw error

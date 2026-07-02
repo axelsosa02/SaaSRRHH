@@ -111,7 +111,7 @@ export async function addQuickCandidate(
         .limit(1)
         .single()
 
-    const nuevoOrden = lastItem ? lastItem.orden + 1 : 0
+    const nuevoOrden = (lastItem?.orden ?? -1) + 1
 
     // Vincular al puesto
     const { error: linkError } = await supabase
@@ -151,14 +151,15 @@ export async function linkCandidateToJob(jobId: string, candidateId: string) {
         .limit(1)
         .maybeSingle()
 
-    const nuevoOrden = lastItem ? lastItem.orden + 1 : 0
+    const nuevoOrden = lastItem && lastItem.orden !== null ? lastItem.orden + 1 : 0
 
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
     const { error } = await supabase
         .from('job_candidates')
         .insert({
             job_id: jobId,
             candidate_id: candidateId,
-            org_id: profile?.org_id,
+            org_id: profile.org_id,
             estado: 'candidato',
             orden: nuevoOrden,
         })

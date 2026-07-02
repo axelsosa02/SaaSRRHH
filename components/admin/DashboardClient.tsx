@@ -237,11 +237,11 @@ export function DashboardClient({ metrics }: Props) {
                                                 {c.nombre} {c.apellido}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {c.area_id || 'Sin área'}{c.localidad ? ` · ${c.localidad}` : ''}
+                                                {c.area || 'Sin área'}{c.localidad ? ` · ${c.localidad}` : ''}
                                             </p>
                                         </div>
                                         <span className="text-xs text-muted-foreground shrink-0">
-                                            {timeAgo(c.created_at)}
+                                            {c.created_at ? timeAgo(c.created_at) : 'Recién'}
                                         </span>
                                     </div>
                                 ))}
@@ -267,7 +267,7 @@ export function DashboardClient({ metrics }: Props) {
                                                 {item.descripcion}
                                             </p>
                                             <span className="text-xs text-muted-foreground shrink-0 pt-0.5">
-                                                {timeAgo(item.fecha)}
+                                                {item.fecha ? timeAgo(String(item.fecha)) : 'Recién'}
                                             </span>
                                         </div>
                                     )

@@ -20,10 +20,11 @@ export async function addWorkHistory(candidateId: string, input: Omit<WorkHistor
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
-    console.log('el usuario es:', profile?.org_id)
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
+    console.log('el usuario es:', profile.org_id)
     const { error } = await supabase.from('work_history').insert({
         candidate_id: candidateId,
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         ...input,
     })
     if (error) throw error
@@ -54,10 +55,11 @@ export async function addEducation(candidateId: string, input: Omit<Education, '
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const { error } = await supabase.from('education').insert({
         candidate_id: candidateId,
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         ...input,
     })
     if (error) throw error
@@ -84,10 +86,11 @@ export async function upsertEvaluation(candidateId: string, notas: string, jobId
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const { error } = await supabase.from('evaluations').upsert({
         candidate_id: candidateId,
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         job_id: jobId || null,
         notas,
         updated_at: new Date().toISOString(),
@@ -115,10 +118,11 @@ export async function addNote(candidateId: string, contenido: string) {
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const { error } = await supabase.from('notes').insert({
         candidate_id: candidateId,
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         user_id: userData.user.id,
         contenido,
     })
@@ -147,9 +151,10 @@ export async function uploadDocument(
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const ext = file.name.split('.').pop()
-    const path = `${profile?.org_id}/${candidateId}/${Date.now()}.${ext}`
+    const path = `${profile.org_id}/${candidateId}/${Date.now()}.${ext}`
 
     // Subir el archivo a Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -164,7 +169,7 @@ export async function uploadDocument(
     // Guardar referencia en la tabla documents
     const { error: dbError } = await supabase.from('documents').insert({
         candidate_id: candidateId,
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         nombre: file.name,
         url: urlData.publicUrl,
         tipo,
@@ -204,10 +209,11 @@ export async function addReference(candidateId: string, input: Omit<Reference, '
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const { error } = await supabase.from('referencesjobs').insert({
         candidate_id: candidateId,
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         ...input,
     })
     if (error) throw error
@@ -225,11 +231,12 @@ export async function getOrgTags(): Promise<Tag[]> {
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const { data, error } = await supabase
         .from('tags')
         .select('*')
-        .eq('org_id', profile?.org_id)
+        .eq('org_id', profile.org_id)
         .order('nombre', { ascending: true })
     if (error) throw error
     return data as Tag[]
@@ -252,10 +259,11 @@ export async function createTag(nombre: string): Promise<Tag> {
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) throw new Error('No autenticado')
     const { data: profile } = await supabase.from('users').select('org_id').eq('id', userData.user.id).single()
+    if (!profile?.org_id) throw new Error('No se encontró la organización')
 
     const { data, error } = await supabase
         .from('tags')
-        .insert({ nombre, org_id: profile?.org_id })
+        .insert({ nombre, org_id: profile.org_id })
         .select()
         .single()
     if (error) throw error

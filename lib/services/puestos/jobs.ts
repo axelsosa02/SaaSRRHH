@@ -18,8 +18,10 @@ export async function createJob(data: JobInput) {
         .eq('id', userData.user.id)
         .single()
 
+    if (!profile?.org_id) throw new Error("No se encontró la organización")
+
     const { error } = await supabase.from('jobs').insert({
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         titulo: data.titulo,
         descripcion: data.descripcion,
         area: data.area,
@@ -44,15 +46,17 @@ export async function updateJob(id: string, data: JobInput) {
         .eq('id', userData.id)
         .single()
 
+    if (!profile?.org_id) throw new Error("No se encontró la organización")
+
     const { error } = await supabase.from('jobs').update({
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         titulo: data.titulo,
         descripcion: data.descripcion,
         area: data.area,
         modalidad: data.modalidad,
         localidad: data.localidad,
         visibility: data.visibility,
-    }).eq('id', id).eq('org_id', profile?.org_id)
+    }).eq('id', id).eq('org_id', profile.org_id)
 
     if (error) throw error
 }
@@ -70,12 +74,14 @@ export async function toggleJobVisibility(id: string, visibility: boolean) {
         .eq('id', userData.user.id)
         .single()
 
+    if (!profile?.org_id) throw new Error("No se encontró la organización")
+
     //hacemos el update de la visibilidad del puesto (solo si pertenece a la org)
     const { error } = await supabase
         .from('jobs')
         .update({ visibility })
         .eq('id', id)
-        .eq('org_id', profile?.org_id)
+        .eq('org_id', profile.org_id)
 
     if (error) throw error
 }

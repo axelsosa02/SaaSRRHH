@@ -46,6 +46,7 @@ function getAvatarColor(id: string) {
 export function KanbanCard({ jobCandidate, jobId, isDragging, onRemoveCandidate }: KanbanCardProps) {
     const router = useRouter()
     const { candidate } = jobCandidate
+    if (!candidate) return null
 
     const {
         attributes,
@@ -117,7 +118,7 @@ export function KanbanCard({ jobCandidate, jobId, isDragging, onRemoveCandidate 
                     </span>
                 )}
                 <span className="text-[11px] text-muted-foreground ml-auto">
-                    {timeAgo(jobCandidate.created_at)}
+                    {jobCandidate.created_at ? timeAgo(jobCandidate.created_at) : 'Recién'}
                 </span>
             </div>
         </div>

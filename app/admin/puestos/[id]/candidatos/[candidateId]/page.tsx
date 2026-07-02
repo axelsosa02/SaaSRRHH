@@ -73,7 +73,7 @@ export default function CandidateProfilePage() {
     const handleEstadoChange = async (nuevoEstado: KanbanEstado) => {
         if (!jobCandidate) return
         try {
-            await moveCandidate(jobCandidate.id, nuevoEstado, jobCandidate.orden)
+            await moveCandidate(jobCandidate.id, nuevoEstado, jobCandidate.orden ?? 0)
             setJobCandidate(prev => prev ? { ...prev, estado: nuevoEstado } : prev)
             toast.success('Etapa actualizada')
 

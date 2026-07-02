@@ -28,8 +28,10 @@ export async function createAvailability(data: AvailabilityInput) {
         .eq('id', userData.user.id)
         .single()
 
+    if (!profile?.org_id) throw new Error("No se encontró la organización")
+
     const { error } = await supabase.from('availability').insert({
-        org_id: profile?.org_id,
+        org_id: profile.org_id,
         nombre: data.nombre,
     })
 

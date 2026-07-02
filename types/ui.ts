@@ -6,15 +6,14 @@
 import { CandidateDB } from "./database"
 import { KanbanEstado } from "./enums"
 
-// Candidato dentro de un puesto (job_candidates join candidates)
 export interface JobCandidate {
     id: string                  // id de job_candidates
     job_id: string
     candidate_id: string
     estado: KanbanEstado
-    orden: number
-    created_at: string
-    candidate: CandidateDB      // join con candidates
+    orden: number | null
+    created_at: string | null
+    candidate?: CandidateDB      // join con candidates (opcional si no se hace el join)
 }
 
 export type Candidates = {

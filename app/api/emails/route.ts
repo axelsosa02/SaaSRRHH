@@ -46,6 +46,13 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        if (!orgId) {
+            return NextResponse.json(
+                { error: 'No se pudo determinar la organización asociada' },
+                { status: 400 }
+            )
+        }
+
         // En desarrollo sin dominio verificado, Resend solo permite enviar al propio email.
         // DEV_EMAIL_OVERRIDE redirige todos los envíos a ese address.
         const isDev = process.env.NODE_ENV === 'development'
