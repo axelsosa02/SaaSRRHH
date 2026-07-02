@@ -102,7 +102,7 @@ export async function createCandidate(input: CandidateInput, jobId?: string) {
             .limit(1)
             .maybeSingle()
 
-        const nuevoOrden = lastItem ? lastItem.orden + 1 : 0
+        const nuevoOrden = lastItem && lastItem.orden ? lastItem.orden + 1 : 0
 
         const { error: linkError } = await supabase
             .from('job_candidates')
@@ -147,17 +147,17 @@ export async function updateCandidate(id: string, input: CandidateInput) {
 
     // Actualizar etiquetas: eliminar las actuales y luego insertar las nuevas
     await supabase.from('candidate_tags').delete().eq('candidate_id', candidate.id)
-    
+
     if (input.tags && input.tags.length > 0) {
         const { data: existingTags } = await supabase
             .from('tags')
             .select('id, nombre')
             .eq('org_id', input.org_id)
             .in('nombre', input.tags)
-            
+
         const existingTagsMap = new Map((existingTags || []).map(t => [t.nombre, t.id]))
         const tagIdsToLink: string[] = []
-        
+
         for (const tagName of input.tags) {
             let tagId = existingTagsMap.get(tagName)
             if (!tagId) {
@@ -166,7 +166,7 @@ export async function updateCandidate(id: string, input: CandidateInput) {
                     .insert({ org_id: input.org_id, nombre: tagName })
                     .select('id')
                     .single()
-                    
+
                 if (!newTagError && newTag) tagId = newTag.id
             }
             if (tagId) tagIdsToLink.push(tagId)

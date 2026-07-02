@@ -23,15 +23,15 @@ export interface DashboardMetrics {
         id: string
         nombre: string
         apellido: string
-        area_id: string | null
+        area: string | null
         localidad: string | null
-        created_at: string
+        created_at: string | null
     }[]
     actividadReciente: {
         id: string
         tipo: 'postulacion' | 'contratado' | 'email' | 'puesto'
         descripcion: string
-        fecha: string
+        fecha: string | number | null
     }[]
     planUsage: PlanUsage | null
 }
@@ -121,9 +121,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         // Candidatos por área (de esta org)
         supabase
             .from('candidates')
-            .select('area_id')
+            .select('area')
             .eq('org_id', orgId)
-            .not('area_id', 'is', null),
+            .not('area', 'is', null),
 
         // Estados del kanban — filtrar por jobs de esta org
         supabase
@@ -134,7 +134,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         // Últimos 4 postulantes (de esta org)
         supabase
             .from('candidates')
-            .select('id, nombre, apellido, area_id, localidad, created_at')
+            .select('id, nombre, apellido, area, localidad, created_at')
             .eq('org_id', orgId)
             .order('created_at', { ascending: false })
             .limit(4),
@@ -158,7 +158,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     // Agrupar candidatos por área
     const areaMap = new Map<string, number>()
     for (const c of candidatosPorAreaRaw || []) {
-        const area = c.area_id || 'Sin definir'
+        const area = c.area || 'Sin definir'
         areaMap.set(area, (areaMap.get(area) || 0) + 1)
     }
     const candidatosPorArea = Array.from(areaMap.entries())
@@ -199,8 +199,12 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         })
     }
 
-    // Ordenar actividad por fecha
-    actividad.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+    // Ordenar actividad por fecha de forma segura (manejando nulos)
+    actividad.sort((a, b) => {
+        const dateA = a.fecha ? new Date(a.fecha).getTime() : 0
+        const dateB = b.fecha ? new Date(b.fecha).getTime() : 0
+        return dateB - dateA
+    })
 
     // ── Plan usage ─────────────────────────────────────────────
     let planUsage: PlanUsage | null = null

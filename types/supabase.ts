@@ -448,7 +448,7 @@ export type Database = {
         Row: {
           candidate_id: string
           created_at: string | null
-          estado: string | null
+          estado: string
           id: string
           job_id: string
           orden: number | null
@@ -457,7 +457,7 @@ export type Database = {
         Insert: {
           candidate_id: string
           created_at?: string | null
-          estado?: string | null
+          estado?: string
           id?: string
           job_id: string
           orden?: number | null
@@ -466,7 +466,7 @@ export type Database = {
         Update: {
           candidate_id?: string
           created_at?: string | null
-          estado?: string | null
+          estado?: string
           id?: string
           job_id?: string
           orden?: number | null
@@ -896,36 +896,36 @@ export type Database = {
           avatar_url: string | null
           country_code: string | null
           created_at: string | null
-          email: string | null
+          email: string
           id: string
-          nombre: string | null
+          nombre: string
           org_id: string
           phone: string | null
-          role: string | null
+          role: string
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           country_code?: string | null
           created_at?: string | null
-          email?: string | null
+          email: string
           id: string
-          nombre?: string | null
+          nombre: string
           org_id: string
           phone?: string | null
-          role?: string | null
+          role?: string
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           country_code?: string | null
           created_at?: string | null
-          email?: string | null
+          email?: string
           id?: string
-          nombre?: string | null
+          nombre?: string
           org_id?: string
           phone?: string | null
-          role?: string | null
+          role?: string
           updated_at?: string | null
         }
         Relationships: [

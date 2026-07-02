@@ -57,13 +57,13 @@ export interface Job {
 
 export interface User {
     id: string
-    nombre: string,
-    email: string,
-    role: string,
-    avatar_url?: string,
-    phone?: string,
-    created_at?: string
-    country_code: string
+    nombre: string
+    email: string
+    role: string
+    avatar_url?: string | null
+    phone?: string | null
+    created_at?: string | null
+    country_code?: string | null
 }
 
 // Historial de trabajo
@@ -170,7 +170,8 @@ export interface Tag {
     id: string
     nombre: string
     org_id: string
-    created_at: string
+    color?: string | null
+    created_at: string | null
 }
 
 export interface CandidateTag {
