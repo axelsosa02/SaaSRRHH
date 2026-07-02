@@ -85,12 +85,12 @@ export type SectionContent =
 
 export interface LandingSection {
     id: string
-    organization_id: string
+    org_id: string
     type: SectionType
-    content: SectionContent
+    content: any
     order: number
     is_active: boolean
 }
 
 // Map de secciones — para acceder fácil por tipo
-export type SectionMap = Partial<Record<SectionType, SectionContent>>
+export type SectionMap = Partial<Record<SectionType, SectionContent>>

@@ -30,7 +30,7 @@ export default async function Page({ params, }: { params: Promise<{ slug: string
     if (!orgData) return notFound()
 
     const { landing_sections, ...org } = orgData
-    const typedOrg = org as any
+    const typedOrg = org
 
     // Redirección si el plan no tiene landing personalizada (Plan Starter)
     if (typedOrg.plan && typedOrg.plan.has_custom_landing === false) {
@@ -64,51 +64,51 @@ export default async function Page({ params, }: { params: Promise<{ slug: string
                 .filter(s => s.is_active)
                 .sort((a, b) => (SECTION_ORDER[a.type] ?? 99) - (SECTION_ORDER[b.type] ?? 99))
                 .map((section) => {
-                switch (section.type) {
-                    case 'hero':
-                        return (
-                            <HeroSection
-                                key={section.id}
-                                content={section.content as HeroContent}
-                                slug={slug}
-                                colorBrand={colorBrand}
-                            />
-                        )
-                    case 'quienes_somos':
-                        return (
-                            <QuienesSomosSection
-                                key={section.id}
-                                content={section.content as QuienesSomosContent}
-                            />
-                        )
-                    case 'servicios':
-                        return (
-                            <ServicioSection
-                                key={section.id}
-                                content={section.content as ServiciosContent}
-                                colorBrand={colorBrand}
-                            />
-                        )
-                    case 'como_postularse':
-                        return (
-                            <ComoPostularseSection
-                                key={section.id}
-                                content={section.content as ComoPostularseContent}
-                                colorBrand={colorBrand}
-                            />
-                        )
-                    case 'contacto':
-                        return (
-                            <ContactoSection
-                                key={section.id}
-                                content={section.content as ContactoContent}
-                                colorBrand={colorBrand}
-                            />
-                        )
-                    default:
-                        return null
-                }
-            })}
+                    switch (section.type) {
+                        case 'hero':
+                            return (
+                                <HeroSection
+                                    key={section.id}
+                                    content={section.content as HeroContent}
+                                    slug={slug}
+                                    colorBrand={colorBrand}
+                                />
+                            )
+                        case 'quienes_somos':
+                            return (
+                                <QuienesSomosSection
+                                    key={section.id}
+                                    content={section.content as QuienesSomosContent}
+                                />
+                            )
+                        case 'servicios':
+                            return (
+                                <ServicioSection
+                                    key={section.id}
+                                    content={section.content as ServiciosContent}
+                                    colorBrand={colorBrand}
+                                />
+                            )
+                        case 'como_postularse':
+                            return (
+                                <ComoPostularseSection
+                                    key={section.id}
+                                    content={section.content as ComoPostularseContent}
+                                    colorBrand={colorBrand}
+                                />
+                            )
+                        case 'contacto':
+                            return (
+                                <ContactoSection
+                                    key={section.id}
+                                    content={section.content as ContactoContent}
+                                    colorBrand={colorBrand}
+                                />
+                            )
+                        default:
+                            return null
+                    }
+                })}
 
             {/* Sección de Vacantes (siempre visible si hay puestos) */}
             <VacantesSection
