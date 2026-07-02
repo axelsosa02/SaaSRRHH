@@ -48,7 +48,7 @@ export default async function JobDetailPage({
                             </div>
                             <div className="flex items-center gap-2">
                                 <Clock className="size-5" />
-                                {job.modalidad_id}
+                                {job.modalidad}
                             </div>
                         </div>
                     </div>
