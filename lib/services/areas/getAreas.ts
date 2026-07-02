@@ -1,12 +1,15 @@
-import { createClientServer } from "../../supabase/server";
+import { createAdminClient } from "../../supabase/admin";
 
-export async function getAreas() {
-    const supabase = await createClientServer();
+export async function getAreas(orgId?: string) {
+    const supabase = createAdminClient();
 
-    const { data, error } = await supabase
-        .from("areas")
-        .select("*")
-        .order("nombre", { ascending: true });
+    let query = supabase.from("areas").select("*");
+
+    if (orgId) {
+        query = query.eq("org_id", orgId);
+    }
+
+    const { data, error } = await query.order("nombre", { ascending: true });
 
     if (error) {
         console.error("Error al obtener las áreas:", error);

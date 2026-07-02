@@ -34,7 +34,10 @@ export async function getOrgConfig(): Promise<OrgConfig | null> {
             monto_postulacion,
             mp_connected,
             mp_user_id,
-            nav_items
+            nav_items,
+            plan_id,
+            plan_expires_at,
+            plan:plans(*)
         `)
         .eq('id', profile.org_id)
         .single()

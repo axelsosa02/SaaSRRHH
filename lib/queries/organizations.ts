@@ -7,6 +7,7 @@ export async function getOrganizationBySlug(slug: string) {
         .from('organizations')
         .select(`
             *,
+            plan:plans(*),
             landing_sections (*)
         `)
         .eq('slug', slug)

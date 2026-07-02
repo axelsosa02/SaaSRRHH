@@ -1,6 +1,6 @@
 import { getOrganizationBySlug } from '@/lib/queries/organizations'
 import { getActiveJobsByOrg } from '@/lib/queries/jobs'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 // Importación de componentes de la landing
 import { HeroSection } from '@/components/landing/HeroSection'
@@ -30,6 +30,13 @@ export default async function Page({ params, }: { params: Promise<{ slug: string
     if (!orgData) return notFound()
 
     const { landing_sections, ...org } = orgData
+    const typedOrg = org as any
+
+    // Redirección si el plan no tiene landing personalizada (Plan Starter)
+    if (typedOrg.plan && typedOrg.plan.has_custom_landing === false) {
+        redirect(`/${slug}/postularse`)
+    }
+
     const sections = landing_sections as LandingSection[]
 
     // Obtenemos los puestos activos

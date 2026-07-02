@@ -6,7 +6,7 @@ export interface Area {
     id: string
     org_id: string
     nombre: string
-    created_at: string
+    created_at: string | null
 }
 
 export interface Experience {
@@ -47,11 +47,11 @@ export type CandidateDB = {
 export interface Job {
     id: string
     titulo: string
-    descripcion?: string
+    descripcion?: string | null
     area: string
     modalidad: string
     localidad: string
-    created_at?: string
+    created_at?: string | null
     visibility: boolean
 }
 

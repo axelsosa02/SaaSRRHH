@@ -24,7 +24,6 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Job, Area, Experience, Availability } from '@/types/database'
 import { toast } from 'react-hot-toast'
-import { createCandidate } from '@/lib/services/createCandidate'
 import { Loader2, Upload, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { checkCandidateLimit } from '@/lib/services/plan-limits'
@@ -143,38 +142,55 @@ export function ApplicationForm({
             let cvUrl = values.cv_url
 
             if (selectedFile) {
-                const supabase = createClient()
-                const ext = selectedFile.name.split('.').pop()
-                // Usamos un identificador único para el path de almacenamiento del CV
-                const path = `cv/${orgId}/temp_${crypto.randomUUID()}.${ext}`
+                const fileData = new FormData()
+                fileData.append('file', selectedFile)
+                fileData.append('orgId', orgId)
 
-                const { error: uploadError } = await supabase.storage
-                    .from('documents')
-                    .upload(path, selectedFile, { upsert: true })
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: fileData,
+                })
 
-                if (uploadError) throw uploadError
+                if (!uploadRes.ok) {
+                    const errData = await uploadRes.json()
+                    throw new Error(errData.error || 'Error al subir el CV')
+                }
 
-                const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path)
-                cvUrl = urlData.publicUrl
+                const uploadResult = await uploadRes.json()
+                cvUrl = uploadResult.url
             }
 
             const jobId = values.jobId === 'general' ? undefined : values.jobId;
             const jobTitulo = jobId ? jobs.find(j => j.id === jobId)?.titulo : undefined
 
-            const candidate = await createCandidate({
-                org_id: orgId,
-                nombre: values.nombre,
-                apellido: values.apellido,
-                email: values.email,
-                telefono: values.telefono,
-                cv_url: cvUrl || undefined,
-                resumen: values.resumen,
-                area: values.area,
-                disponibilidad: values.disponibilidad,
-                experiencia: values.experiencia,
-                localidad: values.localidad,
-                provincia: values.provincia,
-            }, jobId)
+            const candidateRes = await fetch('/api/candidatos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    input: {
+                        org_id: orgId,
+                        nombre: values.nombre,
+                        apellido: values.apellido,
+                        email: values.email,
+                        telefono: values.telefono,
+                        cv_url: cvUrl || undefined,
+                        resumen: values.resumen,
+                        area: values.area,
+                        disponibilidad: values.disponibilidad,
+                        experiencia: values.experiencia,
+                        localidad: values.localidad,
+                        provincia: values.provincia,
+                    },
+                    jobId,
+                }),
+            })
+
+            if (!candidateRes.ok) {
+                const errData = await candidateRes.json()
+                throw new Error(errData.error || 'Error al enviar la postulación')
+            }
+
+            const { candidate } = await candidateRes.json()
 
             // Enviar email de bienvenida al postulante (sin bloquear el flujo si falla)
             fetch('/api/emails/welcome', {

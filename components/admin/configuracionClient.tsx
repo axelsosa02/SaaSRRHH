@@ -206,6 +206,15 @@ export function ConfiguracionClient({ org, sections }: Props) {
     const contacto = sections.contacto as ContactoContent | undefined
     const footer = sections.footer as FooterContent | undefined
 
+    // Verifica si la pestaña está restringida por el plan
+    const isTabRestricted = (tabId: Tab) => {
+        const isLandingTab = ['hero', 'quienes_somos', 'como_postularse', 'servicios', 'contacto'].includes(tabId)
+        return isLandingTab && org.plan?.has_custom_landing === false
+    }
+
+    //verificamos si la seccion de menu de navegacion es visible dependiendo el plan
+    const isNavRestricted = org.plan?.has_custom_landing === false;
+
     // ── CONFIGURACIÓN DE FORMULARIOS ──────────────────────────────────────────
     // Cada formulario se inicializa con los valores actuales de la base de datos (org o sections).
 
@@ -435,7 +444,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
     // ── COMPONENTES DE INTERFAZ (Helpers) ─────────────────────────────────────
 
     /** Contenedor estilizado para cada grupo de campos */
-    const SectionCard = ({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) => (
+    const SectionCard = ({ title, desc, children }: { title: React.ReactNode; desc?: string; children: React.ReactNode }) => (
         <div className="border rounded-xl p-5 bg-card space-y-4">
             <div>
                 <h2 className="text-sm font-medium">{title}</h2>
@@ -564,22 +573,31 @@ export function ConfiguracionClient({ org, sections }: Props) {
                 </div>
             </div>
 
-            {/* Tabs */}
             <div className="flex flex-wrap gap-1 bg-muted border rounded-lg p-1 w-fit">
-                {TABS.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={cn(
-                            'px-4 py-1.5 text-sm rounded-md transition-colors',
-                            activeTab === tab.id
-                                ? 'bg-background text-foreground font-medium shadow-sm border'
-                                : 'text-muted-foreground hover:text-foreground'
-                        )}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+                {TABS.map(tab => {
+                    const restricted = isTabRestricted(tab.id)
+                    return (
+                        <button
+                            key={tab.id}
+                            disabled={restricted}
+                            onClick={() => !restricted && setActiveTab(tab.id)}
+                            className={cn(
+                                'px-4 py-1.5 text-sm rounded-md transition-colors flex items-center gap-1.5',
+                                activeTab === tab.id
+                                    ? 'bg-background text-foreground font-medium shadow-sm border'
+                                    : 'text-muted-foreground hover:text-foreground',
+                                restricted && 'opacity-60 cursor-not-allowed hover:text-muted-foreground'
+                            )}
+                        >
+                            {tab.label}
+                            {restricted && (
+                                <span className="text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+                                    Pro
+                                </span>
+                            )}
+                        </button>
+                    )
+                })}
             </div>
 
             {/* ── TAB GENERAL ──────────────────────────────────────────────── */}
@@ -659,12 +677,23 @@ export function ConfiguracionClient({ org, sections }: Props) {
                     </Form>
 
                     {/* ── Card de navegación ── */}
-                    <SectionCard title="Menú de navegación" desc="Elegí qué ítems se muestran en la barra de navegación de tu landing.">
-                        <div className="flex flex-col gap-3">
+                    <SectionCard title={
+                        <div className="flex items-center gap-2">
+                            <span>Menú de navegación</span>
+                            {isNavRestricted && (
+                                <span className="text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-extrabold uppercase tracking-wider">
+                                    Pro
+                                </span>
+                            )}
+                        </div>
+                    }
+                        desc="Elegí qué ítems se muestran en la barra de navegación de tu landing.">
+                        <div className={`flex flex-col gap-3 ${isNavRestricted ? "pointer-events-none opacity-50 cursor-not-allowed" : ""}`}>
                             {ALL_NAV_ITEMS.map(item => (
                                 <label key={item.id} className="flex items-center gap-3 cursor-pointer select-none">
                                     <input
                                         type="checkbox"
+                                        disabled={isNavRestricted}
                                         checked={navItemsSelected.includes(item.id)}
                                         onChange={e => {
                                             if (e.target.checked) {
@@ -680,7 +709,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
                             ))}
                         </div>
                         <div className="flex justify-end mt-4">
-                            <Button onClick={onSaveNavItems} disabled={savingNav}>
+                            <Button onClick={onSaveNavItems} disabled={savingNav || isNavRestricted} >
                                 {savingNav && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                                 Guardar navegación
                             </Button>
@@ -873,7 +902,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
             )}
 
             {/* ── TAB HERO ─────────────────────────────────────────────────── */}
-            {activeTab === 'hero' && (
+            {activeTab === 'hero' && !isTabRestricted('hero') && (
                 <Form {...heroForm}>
                     <form onSubmit={heroForm.handleSubmit(onSaveHero)} className="flex flex-col gap-4">
                         <SectionCard title="Sección Hero" desc="Primera sección visible de la landing. Lo primero que ve el candidato.">
@@ -936,7 +965,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
             )}
 
             {/* ── TAB QUIÉNES SOMOS ────────────────────────────────────────── */}
-            {activeTab === 'quienes_somos' && (
+            {activeTab === 'quienes_somos' && !isTabRestricted('quienes_somos') && (
                 <Form {...quienesSomosForm}>
                     <form onSubmit={quienesSomosForm.handleSubmit(onSaveQuienesSomos)} className="flex flex-col gap-4">
                         <SectionCard title="Quiénes somos" desc="Sección informativa sobre la consultora.">
@@ -1021,7 +1050,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
             )}
 
             {/* ── TAB CÓMO POSTULARSE ──────────────────────────────────────── */}
-            {activeTab === 'como_postularse' && (
+            {activeTab === 'como_postularse' && !isTabRestricted('como_postularse') && (
                 <Form {...comoPostularseForm}>
                     <form onSubmit={comoPostularseForm.handleSubmit(onSaveComoPostularse)} className="flex flex-col gap-4">
                         <SectionCard title="Cómo postularse" desc="Los pasos que ve el candidato antes de postularse.">
@@ -1090,7 +1119,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
             )}
 
             {/* ── TAB SERVICIOS ────────────────────────────────────────────── */}
-            {activeTab === 'servicios' && (
+            {activeTab === 'servicios' && !isTabRestricted('servicios') && (
                 <Form {...serviciosForm}>
                     <form onSubmit={serviciosForm.handleSubmit(onSaveServicios)} className="flex flex-col gap-4">
                         <SectionCard
@@ -1198,7 +1227,7 @@ export function ConfiguracionClient({ org, sections }: Props) {
             )}
 
             {/* ── TAB CONTACTO ─────────────────────────────────────────────── */}
-            {activeTab === 'contacto' && (
+            {activeTab === 'contacto' && !isTabRestricted('contacto') && (
                 <Form {...contactoForm}>
                     <form onSubmit={contactoForm.handleSubmit(onSaveContacto)} className="flex flex-col gap-4">
                         <SectionCard title="Contacto" desc="Datos que aparecen en la sección de contacto.">

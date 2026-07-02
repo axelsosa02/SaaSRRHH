@@ -1,3 +1,4 @@
+import { Database } from '@/types/supabase'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -6,7 +7,7 @@ export async function createClientServer() {
 
     // Crear un cliente Supabase del servidor con la cookie recién configurada,
     // que podría utilizarse para mantener la sesión del usuario
-    return createServerClient(
+    return createServerClient<Database>(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
