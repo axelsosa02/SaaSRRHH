@@ -116,7 +116,7 @@ export default async function PagoPage({
                             <div className="flex gap-3 items-start">
                                 <CheckCircle2 className="size-5 text-green-600 mt-0.5 shrink-0" />
                                 <p className="text-sm text-slate-600">
-                                    Tu postulación queda activa por 24 horas desde el pago.
+                                    Tu link al formulario queda habilitado por 24 hs para que cargues tu CV.
                                 </p>
                             </div>
                         </div>
