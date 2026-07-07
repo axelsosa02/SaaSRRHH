@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { upsertSection } from '@/lib/services/configuracion landing/landingSections'
 import { updateOrgGeneral, updateOrgLogo, updateOrgEmails, updateOrgPago, uploadSectionImage, updateOrgNavItems, type OrgConfig } from '@/lib/services/configuracion landing/organizacion'
 import { ALL_NAV_ITEMS } from '@/components/landing/Navbar'
+import { SectionPreview } from '@/components/admin/SectionPreview'
 // En tus imports
 import type {
     SectionMap,
@@ -45,15 +46,134 @@ const TABS: { id: Tab; label: string }[] = [
     { id: 'emails', label: 'Correos automáticos' },
 ]
 
-// ─── ESQUEMAS DE VALIDACIÓN (Zod) ──────────────────────────────────────────────
-// Se definen por separado para mantener la claridad y facilitar la inferencia de tipos.
+// ─── COMPONENTES DE INTERFAZ FUERA DEL COMPONENTE PRINCIPAL ───────────────────
+// IMPORTANTE: deben estar fuera de ConfiguracionClient para evitar que React los
+// trate como nuevos tipos en cada render (lo que causaría pérdida del foco de inputs).
 
+/** Contador de caracteres en tiempo real junto al label del campo */
 const FormLabelWithCounter = ({ label, current = 0, max, optional }: { label: React.ReactNode, current?: number, max: number, optional?: boolean }) => (
     <div className="flex items-center justify-between pb-1">
-        <FormLabel className="pb-0!">{label} {optional && <span className="text-muted-foreground font-normal">(opcional)</span>}</FormLabel>
+        <FormLabel className="!pb-0">{label} {optional && <span className="text-muted-foreground font-normal">(opcional)</span>}</FormLabel>
         <span className="text-xs text-muted-foreground font-medium">{current}/{max}</span>
     </div>
 )
+
+/** Contenedor estilizado para cada grupo de campos */
+const SectionCard = ({ title, desc, children }: { title: React.ReactNode; desc?: string; children: React.ReactNode }) => (
+    <div className="border rounded-xl p-5 bg-card space-y-4">
+        <div>
+            <h2 className="text-sm font-medium">{title}</h2>
+            {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
+        </div>
+        {children}
+    </div>
+)
+
+/** Botonera estándar de guardado/cancelado para los formularios */
+const FormActions = ({ form, onReset }: { form: any; onReset: () => void }) => (
+    <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onReset}>Cancelar</Button>
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Guardar cambios
+        </Button>
+    </div>
+)
+
+/**
+ * Campo de imagen con subida desde el dispositivo.
+ * Al seleccionar un archivo lo sube a Storage y actualiza el campo del form con la URL pública.
+ * También acepta pegar una URL manualmente como fallback.
+ */
+const SectionImageUpload = ({
+    value,
+    onChange,
+    slot,
+    label = 'Imagen',
+}: {
+    value: string
+    onChange: (url: string) => void
+    slot: string
+    label?: string
+}) => {
+    const [uploading, setUploading] = useState(false)
+
+    const handleFile = async (file: File) => {
+        const allowed = ['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp']
+        if (!allowed.includes(file.type)) { toast.error('Solo PNG, SVG, JPG o WEBP'); return }
+        if (file.size > 5 * 1024 * 1024) { toast.error('Máx. 5 MB'); return }
+        setUploading(true)
+        try {
+            const url = await uploadSectionImage(file, slot)
+            onChange(url)
+            toast.success('Imagen subida')
+        } catch {
+            toast.error('Error al subir la imagen')
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    return (
+        <div className="space-y-2">
+            <p className="text-sm font-medium">{label} <span className="text-muted-foreground">(opcional)</span></p>
+
+            {/* Preview o zona de subida */}
+            <label className="cursor-pointer block">
+                <div className="border-2 border-dashed rounded-xl p-4 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                    {uploading ? (
+                        <div className="flex flex-col items-center gap-2 py-2">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            <p className="text-xs text-muted-foreground">Subiendo imagen...</p>
+                        </div>
+                    ) : value ? (
+                        <div className="flex flex-col items-center gap-2">
+                            <img src={value} alt="Preview" className="h-28 w-full object-cover rounded-lg" />
+                            <p className="text-xs text-primary">Click para reemplazar</p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-2 py-2">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <ImageIcon className="h-5 w-5 text-primary" />
+                            </div>
+                            <p className="text-xs font-medium">Subir imagen</p>
+                            <p className="text-xs text-muted-foreground">PNG · JPG · WEBP · máx. 5 MB</p>
+                        </div>
+                    )}
+                </div>
+                <input
+                    type="file"
+                    className="hidden"
+                    accept=".png,.jpg,.jpeg,.webp,.svg"
+                    disabled={uploading}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }}
+                />
+            </label>
+
+            {/* URL manual como fallback */}
+            <Input
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                placeholder="O pegá una URL externa: https://..."
+                className="text-xs"
+            />
+
+            {/* Botón limpiar */}
+            {value && (
+                <button
+                    type="button"
+                    onClick={() => onChange('')}
+                    className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                >
+                    × Quitar imagen
+                </button>
+            )}
+        </div>
+    )
+}
+
+// ─── ESQUEMAS DE VALIDACIÓN (Zod) ──────────────────────────────────────────────
+// Se definen por separado para mantener la claridad y facilitar la inferencia de tipos.
 
 /** Esquema para datos básicos y colores de marca de la organización */
 const generalSchema = z.object({
@@ -337,6 +457,31 @@ export function ConfiguracionClient({ org, sections }: Props) {
         },
     })
 
+    // ── VALORES EN TIEMPO REAL (watch) ────────────────────────────────────────
+    const heroWatch = heroForm.watch()
+    const quienesSomosWatch = quienesSomosForm.watch()
+    const comoPostularseWatch = comoPostularseForm.watch()
+    const serviciosWatch = serviciosForm.watch()
+    const contactoWatch = contactoForm.watch()
+
+    // Tabs que muestran preview de la landing
+    const PREVIEW_TABS = ['hero', 'quienes_somos', 'como_postularse', 'servicios', 'contacto'] as const
+    type PreviewTabType = typeof PREVIEW_TABS[number]
+    const isPreviewTab = (tab: string): tab is PreviewTabType => PREVIEW_TABS.includes(tab as PreviewTabType)
+
+    // Convertir los datos planos del form de pasos en el formato que espera ComoPostularseSection
+    const comoPostularsePreviewData = {
+        title: comoPostularseWatch.title,
+        steps: [
+            { numero: 1, titulo: comoPostularseWatch.step1_titulo, descripcion: comoPostularseWatch.step1_descripcion },
+            { numero: 2, titulo: comoPostularseWatch.step2_titulo, descripcion: comoPostularseWatch.step2_descripcion },
+            { numero: 3, titulo: comoPostularseWatch.step3_titulo, descripcion: comoPostularseWatch.step3_descripcion },
+            ...(comoPostularseWatch.step4_titulo ? [{ numero: 4, titulo: comoPostularseWatch.step4_titulo, descripcion: comoPostularseWatch.step4_descripcion || '' }] : []),
+        ],
+        bg_color: comoPostularseWatch.bg_color,
+        text_color: comoPostularseWatch.text_color,
+    }
+
     // ── MANEJADORES DE GUARDADO (Handlers) ────────────────────────────────────
     // Se dividen por sección para permitir guardados parciales.
 
@@ -441,123 +586,24 @@ export function ConfiguracionClient({ org, sections }: Props) {
         finally { setUploadingLogo(false); e.target.value = '' }
     }
 
-    // ── COMPONENTES DE INTERFAZ (Helpers) ─────────────────────────────────────
-
-    /** Contenedor estilizado para cada grupo de campos */
-    const SectionCard = ({ title, desc, children }: { title: React.ReactNode; desc?: string; children: React.ReactNode }) => (
-        <div className="border rounded-xl p-5 bg-card space-y-4">
-            <div>
-                <h2 className="text-sm font-medium">{title}</h2>
-                {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
-            </div>
-            {children}
-        </div>
-    )
-
-    /** Botonera estándar de guardado/cancelado para los formularios */
-    const FormActions = ({ form, onReset }: { form: any; onReset: () => void }) => (
-        <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onReset}>Cancelar</Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Guardar cambios
-            </Button>
-        </div>
-    )
-
-    /**
-     * Campo de imagen con subida desde el dispositivo.
-     * Al seleccionar un archivo lo sube a Storage y actualiza el campo del form con la URL pública.
-     * También acepta pegar una URL manualmente como fallback.
-     */
-    const SectionImageUpload = ({
-        value,
-        onChange,
-        slot,
-        label = 'Imagen',
-    }: {
-        value: string
-        onChange: (url: string) => void
-        slot: string
-        label?: string
-    }) => {
-        const [uploading, setUploading] = useState(false)
-
-        const handleFile = async (file: File) => {
-            const allowed = ['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp']
-            if (!allowed.includes(file.type)) { toast.error('Solo PNG, SVG, JPG o WEBP'); return }
-            if (file.size > 5 * 1024 * 1024) { toast.error('Máx. 5 MB'); return }
-            setUploading(true)
-            try {
-                const url = await uploadSectionImage(file, slot)
-                onChange(url)
-                toast.success('Imagen subida')
-            } catch {
-                toast.error('Error al subir la imagen')
-            } finally {
-                setUploading(false)
-            }
-        }
-
-        return (
-            <div className="space-y-2">
-                <p className="text-sm font-medium">{label} <span className="text-muted-foreground">(opcional)</span></p>
-
-                {/* Preview o zona de subida */}
-                <label className="cursor-pointer block">
-                    <div className="border-2 border-dashed rounded-xl p-4 text-center hover:border-primary/50 hover:bg-muted/30 transition-colors">
-                        {uploading ? (
-                            <div className="flex flex-col items-center gap-2 py-2">
-                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground">Subiendo imagen...</p>
-                            </div>
-                        ) : value ? (
-                            <div className="flex flex-col items-center gap-2">
-                                <img src={value} alt="Preview" className="h-28 w-full object-cover rounded-lg" />
-                                <p className="text-xs text-primary">Click para reemplazar</p>
-                            </div>
-                        ) : (
-                            <div className="flex flex-col items-center gap-2 py-2">
-                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <ImageIcon className="h-5 w-5 text-primary" />
-                                </div>
-                                <p className="text-xs font-medium">Subir imagen</p>
-                                <p className="text-xs text-muted-foreground">PNG · JPG · WEBP · máx. 5 MB</p>
-                            </div>
-                        )}
-                    </div>
-                    <input
-                        type="file"
-                        className="hidden"
-                        accept=".png,.jpg,.jpeg,.webp,.svg"
-                        disabled={uploading}
-                        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }}
-                    />
-                </label>
-
-                {/* URL manual como fallback */}
-                <Input
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                    placeholder="O pegá una URL externa: https://..."
-                    className="text-xs"
-                />
-
-                {/* Botón limpiar */}
-                {value && (
-                    <button
-                        type="button"
-                        onClick={() => onChange('')}
-                        className="text-xs text-muted-foreground hover:text-destructive transition-colors"
-                    >
-                        × Quitar imagen
-                    </button>
-                )}
-            </div>
-        )
-    }
-
     // ─────────────────────────────────────────────────────────────────────────
+
+    const previewPanel = useMemo(() => isPreviewTab(activeTab) ? (
+        <div className="hidden xl:block xl:col-span-5 relative">
+            <div className="sticky top-6 h-[calc(100vh-6rem)] flex flex-col border rounded-2xl shadow-lg overflow-hidden bg-white">
+                <SectionPreview
+                    activeTab={activeTab as PreviewTabType}
+                    heroData={heroWatch as any}
+                    quienesSomosData={quienesSomosWatch as any}
+                    comoPostularseData={comoPostularsePreviewData as any}
+                    serviciosData={serviciosWatch as any}
+                    contactoData={contactoWatch as any}
+                    slug={org.slug || 'preview'}
+                    colorBrand={org.color_primario || '#472825'}
+                />
+            </div>
+        </div>
+    ) : null, [activeTab, heroWatch, quienesSomosWatch, comoPostularsePreviewData, serviciosWatch, contactoWatch, org.slug, org.color_primario]) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div className="flex flex-col gap-6 p-6">
@@ -903,6 +949,8 @@ export function ConfiguracionClient({ org, sections }: Props) {
 
             {/* ── TAB HERO ─────────────────────────────────────────────────── */}
             {activeTab === 'hero' && !isTabRestricted('hero') && (
+                <div className="grid grid-cols-1 xl:grid-cols-10 gap-6 items-start">
+                <div className="xl:col-span-5">
                 <Form {...heroForm}>
                     <form onSubmit={heroForm.handleSubmit(onSaveHero)} className="flex flex-col gap-4">
                         <SectionCard title="Sección Hero" desc="Primera sección visible de la landing. Lo primero que ve el candidato.">
@@ -962,10 +1010,15 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         <FormActions form={heroForm} onReset={() => heroForm.reset()} />
                     </form>
                 </Form>
+                </div>
+                {previewPanel}
+                </div>
             )}
 
             {/* ── TAB QUIÉNES SOMOS ────────────────────────────────────────── */}
             {activeTab === 'quienes_somos' && !isTabRestricted('quienes_somos') && (
+                <div className="grid grid-cols-1 xl:grid-cols-10 gap-6 items-start">
+                <div className="xl:col-span-5">
                 <Form {...quienesSomosForm}>
                     <form onSubmit={quienesSomosForm.handleSubmit(onSaveQuienesSomos)} className="flex flex-col gap-4">
                         <SectionCard title="Quiénes somos" desc="Sección informativa sobre la consultora.">
@@ -1047,10 +1100,15 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         <FormActions form={quienesSomosForm} onReset={() => quienesSomosForm.reset()} />
                     </form>
                 </Form>
+                </div>
+                {previewPanel}
+                </div>
             )}
 
             {/* ── TAB CÓMO POSTULARSE ──────────────────────────────────────── */}
             {activeTab === 'como_postularse' && !isTabRestricted('como_postularse') && (
+                <div className="grid grid-cols-1 xl:grid-cols-10 gap-6 items-start">
+                <div className="xl:col-span-5">
                 <Form {...comoPostularseForm}>
                     <form onSubmit={comoPostularseForm.handleSubmit(onSaveComoPostularse)} className="flex flex-col gap-4">
                         <SectionCard title="Cómo postularse" desc="Los pasos que ve el candidato antes de postularse.">
@@ -1116,10 +1174,15 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         <FormActions form={comoPostularseForm} onReset={() => comoPostularseForm.reset()} />
                     </form>
                 </Form>
+                </div>
+                {previewPanel}
+                </div>
             )}
 
             {/* ── TAB SERVICIOS ────────────────────────────────────────────── */}
             {activeTab === 'servicios' && !isTabRestricted('servicios') && (
+                <div className="grid grid-cols-1 xl:grid-cols-10 gap-6 items-start">
+                <div className="xl:col-span-5">
                 <Form {...serviciosForm}>
                     <form onSubmit={serviciosForm.handleSubmit(onSaveServicios)} className="flex flex-col gap-4">
                         <SectionCard
@@ -1224,10 +1287,15 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         <FormActions form={serviciosForm} onReset={() => serviciosForm.reset()} />
                     </form>
                 </Form>
+                </div>
+                {previewPanel}
+                </div>
             )}
 
             {/* ── TAB CONTACTO ─────────────────────────────────────────────── */}
             {activeTab === 'contacto' && !isTabRestricted('contacto') && (
+                <div className="grid grid-cols-1 xl:grid-cols-10 gap-6 items-start">
+                <div className="xl:col-span-5">
                 <Form {...contactoForm}>
                     <form onSubmit={contactoForm.handleSubmit(onSaveContacto)} className="flex flex-col gap-4">
                         <SectionCard title="Contacto" desc="Datos que aparecen en la sección de contacto.">
@@ -1283,6 +1351,9 @@ export function ConfiguracionClient({ org, sections }: Props) {
                         <FormActions form={contactoForm} onReset={() => contactoForm.reset()} />
                     </form>
                 </Form>
+                </div>
+                {previewPanel}
+                </div>
             )}
 
             {/* ── TAB EMAILS ───────────────────────────────────────────────── */}
