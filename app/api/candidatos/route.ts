@@ -12,6 +12,36 @@ export async function POST(req: Request) {
 
         const supabase = createAdminClient()
 
+        // ── Verificar límite de candidatos del plan (server-side con admin client) ──
+        try {
+            const { data: org } = await supabase
+                .from('organizations')
+                .select('plans(max_candidates)')
+                .eq('id', input.org_id)
+                .single()
+
+            const maxCandidates = (org?.plans as unknown as { max_candidates: number | null } | null)?.max_candidates
+
+
+            // null = ilimitado; solo verificar si hay un límite numérico
+            if (maxCandidates !== null && maxCandidates !== undefined) {
+                const { count } = await supabase
+                    .from('candidates')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('org_id', input.org_id)
+
+                if ((count ?? 0) >= maxCandidates) {
+                    return NextResponse.json(
+                        { error: 'Esta organización no puede recibir más postulaciones en este momento.' },
+                        { status: 403 }
+                    )
+                }
+            }
+        } catch (limitErr) {
+            // Si falla el chequeo de plan, NO bloqueamos al candidato — lo dejamos pasar
+            console.warn('[candidatos] No se pudo verificar el límite del plan:', limitErr)
+        }
+
         // 1. Insertar el candidato
         const { data: candidate, error: candidateError } = await supabase
             .from('candidates')

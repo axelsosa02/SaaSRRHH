@@ -25,8 +25,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Job, Area, Experience, Availability } from '@/types/database'
 import { toast } from 'react-hot-toast'
 import { Loader2, Upload, FileText } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { checkCandidateLimit } from '@/lib/services/plan-limits'
 import { NativeSelect } from '../ui/NativeSelect'
 
 const formSchema = z.object({
@@ -127,18 +125,6 @@ export function ApplicationForm({
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
         try {
-            // ── Plan limit check ──────────────────────────────
-            const candidateCheck = await checkCandidateLimit(orgId)
-            if (!candidateCheck.allowed) {
-                toast.error(
-                    'Esta organización no puede recibir más postulaciones en este momento. Intentá más tarde.',
-                    { duration: 5000 }
-                )
-                setLoading(false)
-                return
-            }
-            // ──────────────────────────────────────────────────
-
             let cvUrl = values.cv_url
 
             if (selectedFile) {
